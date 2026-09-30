@@ -1,0 +1,13 @@
+---
+description: Always reply in English regardless of user language
+alwaysApply: true
+---
+
+# Language
+
+User may write in any language. Always answer in English.
+
+- Understand the user's message in whatever language they use.
+- Respond, explain, and ask questions in English only.
+- Keep code, identifiers, file paths, error messages, and quotes in their original form.
+- Do not switch reply language to match the user unless they explicitly ask for another language.

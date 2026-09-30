@@ -1,0 +1,16 @@
+---
+description: Add @Preview for every Composable UI function
+globs: "**/*.kt"
+alwaysApply: false
+---
+
+# Compose Previews
+
+Every `@Composable` that draws UI must have a matching `@Preview` (or `@PreviewLightDark` / multipreview).
+
+- Add a preview function next to the composable (same file), named `{Name}Preview`.
+- Use `@Preview(showBackground = true)` at minimum; add dark/light or device variants when useful.
+- Wire realistic sample params (fake data, theme wrapper) so the preview renders without runtime app state.
+- Wrap with the app theme (`GaliusTheme` or project theme) when the composable depends on it.
+- Skip preview only for non-UI composables (e.g. pure state holders, effects-only, private helpers that take no meaningful UI).
+- When editing an existing composable, add or update its preview if missing or stale.

@@ -1,0 +1,81 @@
+---
+description: Feature-based Clean Architecture with MVI + reducer
+alwaysApply: true
+---
+
+# Architecture — Feature-based Clean Arch + MVI
+
+## Package layout
+
+Root: `com.balius.galius`
+
+```
+core/                 # app-wide infra only (no feature UI)
+  di/
+  network/
+  database/
+  navigation/
+  mvi/                # shared MVI base types
+
+common/               # shared by ≥2 features
+  ui/
+  model/
+  util/
+
+feature/
+  {featureName}/
+    data/
+      repository/     # implementations
+      local/
+      remote/
+    domain/
+      model/
+      repository/     # interfaces only
+      usecase/
+    presentation/
+      {Feature}Screen.kt
+      {Feature}ViewModel.kt
+      {Feature}Intent.kt
+      {Feature}State.kt
+      {Feature}Effect.kt
+      {Feature}Reducer.kt
+      components/
+```
+
+Keep existing `MainActivity` at root and Material theme under `ui/theme/` (or `common/ui/theme` if moved later).
+
+## Layer rules
+
+- **core**: DI, DB, network, navigation, MVI base. Never feature screens or feature domain.
+- **common**: only code used by 2+ features. Prefer feature-local until shared need is clear.
+- **feature**: vertical slice. New screens/features live under `feature/{name}/`.
+- Dependencies: `presentation` → `domain` ← `data`. Domain never imports data or presentation.
+- Features must not import another feature’s `data` or `presentation`. Share via `common` or `domain` contracts in `core` when needed.
+- Data implements domain repository interfaces.
+
+## MVI + reducer
+
+Per feature presentation:
+
+| Type | Role |
+|------|------|
+| `State` | Immutable UI state |
+| `Intent` | User/system events |
+| `Effect` | One-shot side effects (nav, snackbar) — not in State |
+| `Reducer` | Pure: `(State, Intent) → State` (and/or effect signals) |
+| `ViewModel` | Holds state, maps intents, runs use cases, applies reducer, emits effects |
+| `Screen` | Compose UI: collect state, send intents, handle effects |
+
+Rules:
+
+- UI never mutates state directly — only sends `Intent`.
+- Business logic in `domain` (use cases); reducer stays pure (no IO, no Android).
+- Suspend/async work in ViewModel / use cases, then reduce result intents (e.g. `LoadSuccess`, `LoadError`).
+- Prefer sealed interfaces for `Intent`, `Effect`, and loading/error variants in `State`.
+
+## When adding code
+
+1. Put it in the correct `feature/{name}/{layer}` (or `core` / `common`).
+2. Do not dump feature code into root or `ui/` except theme / app entry.
+3. New UI composables → feature `presentation` (+ `@Preview` per project preview rule).
+4. Match existing naming: `{Feature}State`, `{Feature}Intent`, `{Feature}Reducer`, etc.

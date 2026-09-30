@@ -1,0 +1,27 @@
+---
+description: Use Navigation 3 for navigation and Koin for DI
+alwaysApply: true
+---
+
+# Navigation & DI
+
+## DI — Koin only
+
+- Use **Koin** as the only dependency injection framework (no Hilt/Dagger).
+- Define modules under `core/di/` (app-wide) and feature-local modules when a feature needs its own bindings.
+- Prefer `viewModel` / `viewModelOf` for ViewModels, `single` / `factory` for repositories, use cases, and infra.
+- Start Koin in the `Application` class. Do not create dependencies manually in Activities/Composables when Koin can provide them.
+- Inject into Compose via Koin Compose APIs (`koinViewModel()`, `koinInject()`), not Service Locator sprawl.
+
+## Navigation — Navigation 3
+
+- Use **AndroidX Navigation 3** (`androidx.navigation3`) for app navigation. Do not introduce Navigation Compose 2 / old NavController graphs for new flows.
+- Put nav graph / entry setup under `core/navigation/`.
+- Feature screens expose their own nav entries/routes; wire them from core navigation.
+- Pass navigation actions as intents/effects (MVI) where it fits — UI does not own deep DI or business routing logic.
+- Keep type-safe routes; avoid string-only route soup when Nav 3 APIs support typed keys/entries.
+
+## Versions
+
+- Use latest stable Koin and Navigation 3 artifacts (per latest-libraries rule).
+- Add Compose + Koin integration artifacts when using Compose screens.

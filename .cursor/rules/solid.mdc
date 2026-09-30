@@ -1,0 +1,41 @@
+---
+description: Follow SOLID principles in design and code
+alwaysApply: true
+---
+
+# SOLID
+
+Apply SOLID when designing and writing Kotlin/Compose code in this project.
+
+## S — Single Responsibility
+
+- One class/file = one reason to change.
+- Split Screen / ViewModel / Reducer / UseCase / Repository. Do not dump loading, mapping, and UI into one type.
+- Prefer small use cases over “god” interactors.
+
+## O — Open/Closed
+
+- Extend via new types (new `Intent`, new use case, new repository impl) rather than editing core switch/logic when possible.
+- Prefer sealed hierarchies and strategy/impl injection over growing `if/else` chains.
+
+## L — Liskov Substitution
+
+- Implementations of domain interfaces must honor the contract (same expectations for nullability, errors, threading).
+- Do not weaken repository/use-case guarantees in “special” impls.
+
+## I — Interface Segregation
+
+- Keep domain repository interfaces focused. Split read/write or unrelated APIs if a client only needs part.
+- Avoid fat “AppRepository” that every feature depends on.
+
+## D — Dependency Inversion
+
+- `presentation` and `domain` depend on abstractions; `data` implements them.
+- Inject via Koin. High-level modules must not construct low-level IO directly.
+- Domain never imports Android framework or data-layer types.
+
+## Practice
+
+- New feature code must respect layer boundaries from the Clean Arch + MVI rule.
+- Prefer constructor injection and explicit interfaces at feature boundaries.
+- Refactor when a class accumulates unrelated responsibilities — don’t “just add another method.”

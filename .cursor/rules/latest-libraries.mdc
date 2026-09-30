@@ -1,0 +1,15 @@
+---
+description: Prefer latest stable library and dependency versions
+alwaysApply: true
+---
+
+# Dependencies
+
+When adding or upgrading libraries, use the latest **stable** versions.
+
+- Prefer current stable releases over older pinned majors unless the project already constrains them.
+- Check `gradle/libs.versions.toml`, Gradle catalogs, and official docs before choosing a version.
+- Avoid outdated or abandoned libraries when a maintained alternative exists.
+- Do not use alpha/beta/RC unless the user asks or no stable release covers the need.
+- When bumping versions, note breaking-change or migration steps if they matter.
+- Match the project's existing dependency style (version catalog, BOM, etc.) — still pick the newest stable that fits.
