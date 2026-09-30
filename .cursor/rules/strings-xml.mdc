@@ -1,0 +1,19 @@
+---
+description: All user-visible text must use strings.xml
+globs: "**/*.{kt,xml}"
+alwaysApply: true
+---
+
+# Strings
+
+Every user-visible string (labels, buttons, empty states, errors, content descriptions) must come from `app/src/main/res/values/strings.xml`.
+
+## Rules
+
+- In Compose: `stringResource(R.string.*)` / `pluralStringResource`.
+- Never hardcode UI copy in Kotlin (`"Search"`, `"Home"`, etc.).
+- Add a new `<string>` (or plurals) when introducing copy; reuse existing keys when meaning matches.
+- Keep keys descriptive: `nav_*`, `action_*`, `home_*`, `search_*`, `more_*`, `media_*`, `error_*`.
+- Format args with `%1$s` / `%1$d` — do not concatenate translated sentences in code.
+- Content descriptions for icons/controls also use string resources.
+- Debug-only / preview placeholders may use string resources too (see `greeting_*`).

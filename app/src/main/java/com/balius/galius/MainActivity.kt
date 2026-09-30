@@ -5,12 +5,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.balius.galius.core.navigation.GaliusNavHost
 import com.balius.galius.ui.theme.GaliusTheme
 
 class MainActivity : ComponentActivity() {
@@ -18,30 +16,20 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            GaliusTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
-            }
+            GaliusAppRoot()
         }
     }
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
+fun GaliusAppRoot(modifier: Modifier = Modifier) {
+    GaliusTheme {
+        GaliusNavHost(modifier = modifier.fillMaxSize())
+    }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, backgroundColor = 0xFF0F1115)
 @Composable
-fun GreetingPreview() {
-    GaliusTheme {
-        Greeting("Android")
-    }
+private fun GaliusAppRootPreview() {
+    GaliusAppRoot()
 }

@@ -1,0 +1,29 @@
+---
+description: Use Gallius design system tokens for all UI
+globs: "**/*.{kt,xml}"
+alwaysApply: true
+---
+
+# Design system — Gallius Dynamic Media Engine
+
+## Source of truth
+
+Compose tokens live under `app/src/main/java/com/balius/galius/ui/theme/`:
+
+- `Color.kt` — Material + brand + tag taxonomy
+- `Type.kt` — Inter-targeted typography (`GaliusExtendedTypography` + M3 map)
+- `Shape.kt` — radii (cards 16dp, sheets 24dp, pills full)
+- `Spacing.kt` — 8pt rhythm
+- `Theme.kt` — `GaliusTheme`, `GaliusThemeTokens`, extended colors
+
+Human summary: `docs/DESIGN.md`. Stitch reference: Downloads `stitch_gallius_media_catalog_ui`.
+
+## Rules
+
+- Wrap UI in `GaliusTheme`. Theme is **dark-only** — do not re-enable dynamic/light schemes.
+- Prefer `MaterialTheme.colorScheme` / `typography` / `shapes` for Material roles.
+- Prefer `GaliusThemeTokens.colors` for canvas, card, glass, accents, tag chips, scrims.
+- Prefer `GaliusSpacing` and `GaliusRadius` / `MediaCardShape` / `PillShape` — no magic dens.
+- No hardcoded `#RRGGBB` in feature composables; add a token if missing.
+- Bottom nav labels: Home, Search, More (`nav_home`, `nav_search`, `nav_more`).
+- Aspect ratios: posters `2:3`, video/backdrops `16:9`, square `1:1`.
