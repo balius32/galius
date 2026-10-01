@@ -17,6 +17,16 @@ import com.balius.galius.feature.more.presentation.MoreReducer
 import com.balius.galius.feature.more.presentation.MoreViewModel
 import com.balius.galius.feature.search.presentation.SearchReducer
 import com.balius.galius.feature.search.presentation.SearchViewModel
+import com.balius.galius.feature.tags.data.repository.TaxonomyRepositoryImpl
+import com.balius.galius.feature.tags.domain.repository.TaxonomyRepository
+import com.balius.galius.feature.tags.domain.usecase.CreateCategoryUseCase
+import com.balius.galius.feature.tags.domain.usecase.CreateTagUseCase
+import com.balius.galius.feature.tags.domain.usecase.DeleteTagUseCase
+import com.balius.galius.feature.tags.domain.usecase.ObserveCategoriesUseCase
+import com.balius.galius.feature.tags.domain.usecase.ObserveMediaTagsUseCase
+import com.balius.galius.feature.tags.domain.usecase.SetMediaTagUseCase
+import com.balius.galius.feature.tags.presentation.ManageTagsReducer
+import com.balius.galius.feature.tags.presentation.ManageTagsViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.viewModelOf
@@ -30,29 +40,43 @@ val appModule = module {
             GaliusDatabase::class.java,
             "galius.db",
         )
-            .addMigrations(GaliusDatabase.MIGRATION_1_2)
+            .addMigrations(
+                GaliusDatabase.MIGRATION_1_2,
+                GaliusDatabase.MIGRATION_2_3,
+                GaliusDatabase.MIGRATION_3_4,
+            )
             .build()
     }
     single { get<GaliusDatabase>().mediaDao() }
+    single { get<GaliusDatabase>().taxonomyDao() }
     single { VaultFileStore(androidContext()) }
     single { MediaStoreDeleteUriResolver(androidContext()) }
     single { MediaStoreRestorer(androidContext()) }
     single {
         MediaRepositoryImpl(androidContext(), get(), get(), get(), get())
     } bind MediaRepository::class
+    single { TaxonomyRepositoryImpl(get()) } bind TaxonomyRepository::class
 
     factoryOf(::ImportMediaUseCase)
     factoryOf(::ObserveLibraryUseCase)
     factoryOf(::RestoreAndRemoveMediaUseCase)
+    factoryOf(::ObserveCategoriesUseCase)
+    factoryOf(::CreateCategoryUseCase)
+    factoryOf(::CreateTagUseCase)
+    factoryOf(::DeleteTagUseCase)
+    factoryOf(::ObserveMediaTagsUseCase)
+    factoryOf(::SetMediaTagUseCase)
 
     factoryOf(::HomeReducer)
     factoryOf(::SearchReducer)
     factoryOf(::MoreReducer)
+    factoryOf(::ManageTagsReducer)
 
     viewModelOf(::HomeViewModel)
     viewModelOf(::SearchViewModel)
     viewModelOf(::MoreViewModel)
     viewModelOf(::ImportSessionViewModel)
+    viewModelOf(::ManageTagsViewModel)
 }
 
 val appModules = listOf(appModule)

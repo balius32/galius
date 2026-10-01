@@ -50,6 +50,8 @@ import com.balius.galius.R
 import com.balius.galius.common.ui.GalliusTopBar
 import com.balius.galius.feature.media.domain.model.MediaItem
 import com.balius.galius.feature.media.domain.model.MediaType
+import com.balius.galius.feature.media.presentation.components.MediaDetailsSheet
+import com.balius.galius.feature.media.presentation.components.MediaTagPickerSheet
 import com.balius.galius.feature.media.presentation.components.MediaThumbCard
 import com.balius.galius.ui.theme.AccentCyan
 import com.balius.galius.ui.theme.CanvasBase
@@ -92,6 +94,7 @@ fun HomeRoute(
             onToggleVideosOnly = { viewModel.onIntent(HomeIntent.ToggleVideosOnly) },
             onLongPressItem = { viewModel.onIntent(HomeIntent.LongPressItem(it)) },
             onToggleItem = { viewModel.onIntent(HomeIntent.ToggleItemSelection(it)) },
+            onOpenDetails = { viewModel.onIntent(HomeIntent.OpenDetails(it)) },
             onClearSelection = { viewModel.onIntent(HomeIntent.ClearSelection) },
             onRemoveSelected = { viewModel.onIntent(HomeIntent.RemoveSelected) },
             contentBottomPadding = contentBottomPadding,
@@ -102,6 +105,29 @@ fun HomeRoute(
                 .align(Alignment.BottomCenter)
                 .padding(bottom = contentBottomPadding + GaliusSpacing.sm),
         )
+        state.detailsItem?.let { item ->
+            MediaDetailsSheet(
+                item = item,
+                assignedTags = state.detailsAssignedTags,
+                onDismiss = { viewModel.onIntent(HomeIntent.CloseDetails) },
+                onOpenTagPicker = { viewModel.onIntent(HomeIntent.OpenTagPicker) },
+                onRemoveTag = { viewModel.onIntent(HomeIntent.RemoveTagFromDetails(it)) },
+            )
+        }
+        if (state.showTagPicker && state.detailsItem != null) {
+            MediaTagPickerSheet(
+                categories = state.allCategories,
+                assignedTagIds = state.detailsAssignedTags.map { it.id }.toSet(),
+                onToggleTag = { tagId, currentlyAssigned ->
+                    if (currentlyAssigned) {
+                        viewModel.onIntent(HomeIntent.RemoveTagFromDetails(tagId))
+                    } else {
+                        viewModel.onIntent(HomeIntent.AddTagToDetails(tagId))
+                    }
+                },
+                onDismiss = { viewModel.onIntent(HomeIntent.CloseTagPicker) },
+            )
+        }
     }
 }
 
@@ -113,6 +139,7 @@ fun HomeScreen(
     onToggleVideosOnly: () -> Unit,
     onLongPressItem: (String) -> Unit,
     onToggleItem: (String) -> Unit,
+    onOpenDetails: (String) -> Unit,
     onClearSelection: () -> Unit,
     onRemoveSelected: () -> Unit,
     contentBottomPadding: Dp,
@@ -200,6 +227,8 @@ fun HomeScreen(
                                     onClick = {
                                         if (state.selectionMode) {
                                             onToggleItem(item.id)
+                                        } else {
+                                            onOpenDetails(item.id)
                                         }
                                     },
                                     onLongClick = { onLongPressItem(item.id) },
@@ -371,6 +400,7 @@ private fun HomeScreenEmptyPreview() {
             onToggleVideosOnly = {},
             onLongPressItem = {},
             onToggleItem = {},
+            onOpenDetails = {},
             onClearSelection = {},
             onRemoveSelected = {},
             contentBottomPadding = 96.dp,
@@ -411,6 +441,7 @@ private fun HomeScreenFilledPreview() {
             onToggleVideosOnly = {},
             onLongPressItem = {},
             onToggleItem = {},
+            onOpenDetails = {},
             onClearSelection = {},
             onRemoveSelected = {},
             contentBottomPadding = 96.dp,

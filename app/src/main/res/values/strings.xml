@@ -61,7 +61,6 @@
     <string name="more_app_lock">App lock</string>
     <string name="more_app_lock_subtitle">Require PIN or biometrics to open</string>
     <string name="more_library">Library</string>
-    <string name="more_manage_categories">Manage categories</string>
     <string name="more_manage_tags">Manage tags</string>
     <string name="more_about">About</string>
     <string name="more_version">Version %1$s</string>
@@ -73,7 +72,32 @@
     <string name="tags_label">Tags</string>
     <string name="create_category">Create category</string>
     <string name="create_tag">Create tag</string>
+    <string name="add_category_plus">Add category +</string>
+    <string name="add_tag_plus">Add tag +</string>
+    <string name="category_name_hint">Category name</string>
+    <string name="tag_name_hint">Tag name</string>
+    <string name="tag_pick_category">Choose a category</string>
+    <string name="tag_pick_color">Color</string>
+    <string name="category_empty_tags">No tags in this category yet</string>
+    <string name="categories_empty">No categories yet. Add one to get started.</string>
+    <string name="category_chip_with_count">%1$s · %2$d</string>
+    <string name="media_pick_tag_title">Add tag</string>
+    <string name="media_no_tags_available">Create tags in More → Manage tags</string>
     <string name="uncategorized">Uncategorized</string>
+    <string name="manage_create_category_subtitle">Group related tags together</string>
+    <string name="manage_category_title_label">CATEGORY NAME</string>
+    <string name="manage_category_name_hint">e.g. Places, Events, Projects, People</string>
+    <string name="manage_accent_label">ACCENT COLOR</string>
+    <string name="manage_add_tag">Add tag</string>
+    <string name="manage_tag_hash">#%1$s</string>
+    <string name="error_category_name_required">Enter a category name</string>
+    <string name="error_tag_name_required">Enter a tag name</string>
+    <string name="error_tag_category_required">Choose a category</string>
+
+    <plurals name="manage_tags_count">
+        <item quantity="one">%1$d tag</item>
+        <item quantity="other">%1$d tags</item>
+    </plurals>
 
     <!-- Media -->
     <string name="media_photos_videos">%1$d Photos · %2$d Videos</string>
@@ -83,6 +107,11 @@
     <string name="media_duration_cd">Duration %1$s</string>
     <string name="media_type_photo">Photo</string>
     <string name="media_type_video">Video</string>
+    <string name="media_date_added">Date Added</string>
+    <string name="media_format">Format</string>
+    <string name="media_tags_assigned">%1$d assigned</string>
+    <string name="media_tags_hint">Tap tag to remove</string>
+    <string name="media_add_tag">+ Add tag…</string>
     <string name="media_private_moved">Moved to private vault</string>
     <string name="media_import_permission_rationale">Gallius needs access to move media into the private vault.</string>
     <string name="media_import_partial">Some items could not be imported</string>

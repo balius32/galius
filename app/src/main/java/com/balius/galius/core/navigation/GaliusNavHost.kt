@@ -32,6 +32,7 @@ import com.balius.galius.feature.media.presentation.ImportEffect
 import com.balius.galius.feature.media.presentation.ImportSessionViewModel
 import com.balius.galius.feature.more.presentation.MoreRoute
 import com.balius.galius.feature.search.presentation.SearchRoute
+import com.balius.galius.feature.tags.presentation.ManageTagsRoute
 import com.balius.galius.ui.theme.GaliusSpacing
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -47,6 +48,7 @@ fun GaliusNavHost(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val deleteUriResolver = remember(context) { MediaStoreDeleteUriResolver(context) }
+    val showBottomBar = backStack.lastOrNull() is TopLevelRoute
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions(),
@@ -136,10 +138,16 @@ fun GaliusNavHost(
     }
 
     fun navigateToTopLevel(route: TopLevelRoute) {
-        if (currentRoute == route) return
+        if (currentRoute == route && backStack.size == 1) return
         currentRoute = route
         backStack.clear()
         backStack.add(route)
+    }
+
+    val contentBottomPadding = if (showBottomBar) {
+        GaliusSpacing.xxl + GaliusSpacing.xl
+    } else {
+        GaliusSpacing.lg
     }
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -148,7 +156,7 @@ fun GaliusNavHost(
             onBack = {
                 if (backStack.size > 1) {
                     backStack.removeLastOrNull()
-                    currentRoute = backStack.lastOrNull() as? TopLevelRoute ?: TopLevelRoute.Home
+                    currentRoute = backStack.lastOrNull() as? TopLevelRoute ?: currentRoute
                 }
             },
             modifier = Modifier.fillMaxSize(),
@@ -157,18 +165,25 @@ fun GaliusNavHost(
                     HomeRoute(
                         onOpenSearch = { navigateToTopLevel(TopLevelRoute.Search) },
                         onImportClick = importSessionViewModel::onImportClick,
-                        contentBottomPadding = GaliusSpacing.xxl + GaliusSpacing.xl,
+                        contentBottomPadding = contentBottomPadding,
                     )
                 }
                 entry<TopLevelRoute.Search> {
                     SearchRoute(
-                        contentBottomPadding = GaliusSpacing.xxl + GaliusSpacing.xl,
+                        contentBottomPadding = contentBottomPadding,
                     )
                 }
                 entry<TopLevelRoute.More> {
                     MoreRoute(
                         onImportClick = importSessionViewModel::onImportClick,
-                        contentBottomPadding = GaliusSpacing.xxl + GaliusSpacing.xl,
+                        onManageTagsClick = { backStack.add(ManageTagsRoute) },
+                        contentBottomPadding = contentBottomPadding,
+                    )
+                }
+                entry<ManageTagsRoute> {
+                    ManageTagsRoute(
+                        onBack = { backStack.removeLastOrNull() },
+                        contentBottomPadding = contentBottomPadding,
                     )
                 }
             },
@@ -181,10 +196,12 @@ fun GaliusNavHost(
                 .padding(bottom = GaliusSpacing.xxl + GaliusSpacing.xl),
         )
 
-        GaliusBottomBar(
-            currentRoute = currentRoute,
-            onNavigate = ::navigateToTopLevel,
-            modifier = Modifier.align(Alignment.BottomCenter),
-        )
+        if (showBottomBar) {
+            GaliusBottomBar(
+                currentRoute = currentRoute,
+                onNavigate = ::navigateToTopLevel,
+                modifier = Modifier.align(Alignment.BottomCenter),
+            )
+        }
     }
 }

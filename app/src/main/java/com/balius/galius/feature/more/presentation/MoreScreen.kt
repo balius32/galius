@@ -35,6 +35,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun MoreRoute(
     onImportClick: () -> Unit,
+    onManageTagsClick: () -> Unit,
     contentBottomPadding: Dp,
     viewModel: MoreViewModel = koinViewModel(),
 ) {
@@ -43,6 +44,7 @@ fun MoreRoute(
         state = state,
         onToggleAppLock = { viewModel.onIntent(MoreIntent.ToggleAppLock(it)) },
         onImportClick = onImportClick,
+        onManageTagsClick = onManageTagsClick,
         contentBottomPadding = contentBottomPadding,
     )
 }
@@ -52,6 +54,7 @@ fun MoreScreen(
     state: MoreState,
     onToggleAppLock: (Boolean) -> Unit,
     onImportClick: () -> Unit,
+    onManageTagsClick: () -> Unit,
     contentBottomPadding: Dp,
     modifier: Modifier = Modifier,
 ) {
@@ -87,8 +90,10 @@ fun MoreScreen(
         Spacer(modifier = Modifier.height(GaliusSpacing.lg))
 
         SectionLabel(text = stringResource(R.string.more_library))
-        MoreNavRow(title = stringResource(R.string.more_manage_categories))
-        MoreNavRow(title = stringResource(R.string.more_manage_tags))
+        MoreNavRow(
+            title = stringResource(R.string.more_manage_tags),
+            onClick = onManageTagsClick,
+        )
         MoreNavRow(
             title = stringResource(R.string.action_import),
             onClick = onImportClick,
@@ -171,6 +176,7 @@ private fun MoreScreenPreview() {
             state = MoreState(),
             onToggleAppLock = {},
             onImportClick = {},
+            onManageTagsClick = {},
             contentBottomPadding = 96.dp,
         )
     }
