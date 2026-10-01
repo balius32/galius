@@ -17,7 +17,10 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -38,9 +41,35 @@ import com.balius.galius.ui.theme.GaliusSpacing
 import com.balius.galius.ui.theme.GaliusTheme
 import com.balius.galius.ui.theme.GaliusThemeTokens
 import com.balius.galius.ui.theme.GhostBorder
+import com.balius.galius.ui.theme.Primary
 
 @Composable
 fun GalliusTopBar(
+    onSearchClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    selectionCount: Int = 0,
+    isRemoving: Boolean = false,
+    onClearSelection: (() -> Unit)? = null,
+    onRemoveClick: (() -> Unit)? = null,
+) {
+    if (selectionCount > 0) {
+        SelectionTopBar(
+            selectionCount = selectionCount,
+            isRemoving = isRemoving,
+            onClearSelection = onClearSelection ?: {},
+            onRemoveClick = onRemoveClick ?: {},
+            modifier = modifier,
+        )
+    } else {
+        BrandTopBar(
+            onSearchClick = onSearchClick,
+            modifier = modifier,
+        )
+    }
+}
+
+@Composable
+private fun BrandTopBar(
     onSearchClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -96,10 +125,77 @@ fun GalliusTopBar(
     }
 }
 
+@Composable
+private fun SelectionTopBar(
+    selectionCount: Int,
+    isRemoving: Boolean,
+    onClearSelection: () -> Unit,
+    onRemoveClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val typography = GaliusThemeTokens.typography
+    val colors = GaliusThemeTokens.colors
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(CanvasBase.copy(alpha = 0.95f))
+            .windowInsetsPadding(WindowInsets.statusBars)
+            .height(56.dp)
+            .padding(horizontal = GaliusSpacing.sm),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onClearSelection, enabled = !isRemoving) {
+                Icon(
+                    imageVector = Icons.Outlined.Close,
+                    contentDescription = stringResource(R.string.action_close),
+                    tint = Color.White,
+                )
+            }
+            Text(
+                text = stringResource(R.string.home_selection_count, selectionCount),
+                style = typography.headlineSm.copy(color = Color.White),
+            )
+        }
+        if (isRemoving) {
+            CircularProgressIndicator(
+                modifier = Modifier
+                    .padding(end = GaliusSpacing.sm)
+                    .size(22.dp),
+                color = Primary,
+                strokeWidth = 2.dp,
+            )
+        } else {
+            IconButton(onClick = onRemoveClick) {
+                Icon(
+                    imageVector = Icons.Outlined.DeleteOutline,
+                    contentDescription = stringResource(R.string.home_remove_restore_cd),
+                    tint = colors.tagRose,
+                )
+            }
+        }
+    }
+}
+
 @Preview(showBackground = true, backgroundColor = 0xFF0F1115)
 @Composable
 private fun GalliusTopBarPreview() {
     GaliusTheme {
         GalliusTopBar(onSearchClick = {})
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF0F1115)
+@Composable
+private fun GalliusTopBarSelectionPreview() {
+    GaliusTheme {
+        GalliusTopBar(
+            onSearchClick = {},
+            selectionCount = 2,
+            onClearSelection = {},
+            onRemoveClick = {},
+        )
     }
 }

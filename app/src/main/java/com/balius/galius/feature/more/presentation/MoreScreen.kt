@@ -1,6 +1,7 @@
 package com.balius.galius.feature.more.presentation
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -33,6 +34,7 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun MoreRoute(
+    onImportClick: () -> Unit,
     contentBottomPadding: Dp,
     viewModel: MoreViewModel = koinViewModel(),
 ) {
@@ -40,6 +42,7 @@ fun MoreRoute(
     MoreScreen(
         state = state,
         onToggleAppLock = { viewModel.onIntent(MoreIntent.ToggleAppLock(it)) },
+        onImportClick = onImportClick,
         contentBottomPadding = contentBottomPadding,
     )
 }
@@ -48,6 +51,7 @@ fun MoreRoute(
 fun MoreScreen(
     state: MoreState,
     onToggleAppLock: (Boolean) -> Unit,
+    onImportClick: () -> Unit,
     contentBottomPadding: Dp,
     modifier: Modifier = Modifier,
 ) {
@@ -85,7 +89,10 @@ fun MoreScreen(
         SectionLabel(text = stringResource(R.string.more_library))
         MoreNavRow(title = stringResource(R.string.more_manage_categories))
         MoreNavRow(title = stringResource(R.string.more_manage_tags))
-        MoreNavRow(title = stringResource(R.string.action_import))
+        MoreNavRow(
+            title = stringResource(R.string.action_import),
+            onClick = onImportClick,
+        )
 
         Spacer(modifier = Modifier.height(GaliusSpacing.lg))
         HorizontalDivider(color = GhostBorder)
@@ -135,13 +142,23 @@ private fun MoreToggleRow(
 }
 
 @Composable
-private fun MoreNavRow(title: String) {
+private fun MoreNavRow(
+    title: String,
+    onClick: (() -> Unit)? = null,
+) {
     Text(
         text = title,
         style = GaliusThemeTokens.typography.bodyLg,
         color = Color.White,
         modifier = Modifier
             .fillMaxWidth()
+            .then(
+                if (onClick != null) {
+                    Modifier.clickable(onClick = onClick)
+                } else {
+                    Modifier
+                },
+            )
             .padding(vertical = GaliusSpacing.md),
     )
 }
@@ -153,6 +170,7 @@ private fun MoreScreenPreview() {
         MoreScreen(
             state = MoreState(),
             onToggleAppLock = {},
+            onImportClick = {},
             contentBottomPadding = 96.dp,
         )
     }

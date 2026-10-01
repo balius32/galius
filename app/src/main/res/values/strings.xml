@@ -41,6 +41,10 @@
     <string name="home_empty_title">Your vault is empty</string>
     <string name="home_empty_body">Import private photos and videos. They leave the system gallery and stay only in Gallius.</string>
     <string name="home_import_cta">Import media</string>
+    <string name="home_fab_import_cd">Add media to vault</string>
+    <string name="home_selection_count">%1$d selected</string>
+    <string name="home_remove_restore_cd">Remove from vault and restore to Gallery</string>
+    <string name="home_item_selected_cd">Selected</string>
 
     <!-- Search -->
     <string name="search_hint">Search titles, tags, categories</string>
@@ -81,6 +85,12 @@
     <string name="media_type_video">Video</string>
     <string name="media_private_moved">Moved to private vault</string>
     <string name="media_import_permission_rationale">Gallius needs access to move media into the private vault.</string>
+    <string name="media_import_partial">Some items could not be imported</string>
+    <string name="media_delete_cancelled">Saved in vault, but still in Gallery. Tap Retry to remove the original.</string>
+    <string name="media_delete_failed">Saved in vault, but could not remove from Gallery. Tap Retry.</string>
+    <string name="media_restored_to_gallery">Restored to Gallery</string>
+    <string name="media_restore_partial">Some items could not be restored</string>
+    <string name="media_restore_failed">Could not restore to Gallery</string>
 
     <!-- Errors / states -->
     <string name="error_generic">Something went wrong</string>
