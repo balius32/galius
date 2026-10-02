@@ -138,6 +138,14 @@
     <string name="viewer_seek_back_cd">Seek back 10 seconds</string>
     <string name="viewer_seek_forward_cd">Seek forward 10 seconds</string>
     <string name="viewer_time_position">%1$s / %2$s</string>
+    <string name="viewer_open_video_player_cd">Open video in player</string>
+
+    <!-- Video player -->
+    <string name="player_close_cd">Close video player</string>
+    <string name="player_seek_back_hint">−%1$d s</string>
+    <string name="player_seek_forward_hint">+%1$d s</string>
+    <string name="player_seek_back_2_cd">Seek back 2 seconds</string>
+    <string name="player_seek_forward_2_cd">Seek forward 2 seconds</string>
 
     <!-- Errors / states -->
     <string name="error_generic">Something went wrong</string>

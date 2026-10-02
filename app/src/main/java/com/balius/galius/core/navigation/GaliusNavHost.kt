@@ -25,14 +25,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.balius.galius.feature.home.presentation.HomeRoute
 import com.balius.galius.feature.media.data.local.MediaReadPermission
 import com.balius.galius.feature.media.data.local.MediaStoreDeleteUriResolver
 import com.balius.galius.feature.media.presentation.ImportEffect
 import com.balius.galius.feature.media.presentation.ImportSessionViewModel
+import com.balius.galius.feature.media.presentation.player.VideoPlayerRoute as VideoPlayerScreenRoute
 import com.balius.galius.feature.media.presentation.viewer.MediaViewerRoute as MediaViewerScreenRoute
 import com.balius.galius.feature.more.presentation.MoreRoute
 import com.balius.galius.feature.search.presentation.SearchRoute
@@ -164,6 +167,12 @@ fun GaliusNavHost(
                 }
             },
             modifier = Modifier.fillMaxSize(),
+            entryDecorators = listOf(
+                // Required before ViewModelStore decorator so entry VMs get SavedState.
+                rememberSaveableStateHolderNavEntryDecorator(),
+                // Scope ViewModels per NavKey so MediaViewer/VideoPlayer recreate on new open.
+                rememberViewModelStoreNavEntryDecorator(),
+            ),
             entryProvider = entryProvider {
                 entry<TopLevelRoute.Home> {
                     HomeRoute(
@@ -220,6 +229,27 @@ fun GaliusNavHost(
                     },
                 ) { key ->
                     MediaViewerScreenRoute(
+                        startMediaId = key.startMediaId,
+                        source = key.source,
+                        onBack = { backStack.removeLastOrNull() },
+                        onOpenVideoPlayer = { mediaId ->
+                            backStack.add(VideoPlayerRoute(mediaId, key.source))
+                        },
+                    )
+                }
+                entry<VideoPlayerRoute>(
+                    metadata = NavDisplay.transitionSpec {
+                        slideInHorizontally(initialOffsetX = { it }) togetherWith
+                            slideOutHorizontally(targetOffsetX = { -it })
+                    } + NavDisplay.popTransitionSpec {
+                        slideInHorizontally(initialOffsetX = { -it }) togetherWith
+                            slideOutHorizontally(targetOffsetX = { it })
+                    } + NavDisplay.predictivePopTransitionSpec {
+                        slideInHorizontally(initialOffsetX = { -it }) togetherWith
+                            slideOutHorizontally(targetOffsetX = { it })
+                    },
+                ) { key ->
+                    VideoPlayerScreenRoute(
                         startMediaId = key.startMediaId,
                         source = key.source,
                         onBack = { backStack.removeLastOrNull() },

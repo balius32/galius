@@ -16,6 +16,8 @@ import com.balius.galius.feature.media.domain.usecase.ObserveMediaByCategoryUseC
 import com.balius.galius.feature.media.domain.usecase.ObserveMediaByTagUseCase
 import com.balius.galius.feature.media.domain.usecase.RestoreAndRemoveMediaUseCase
 import com.balius.galius.feature.media.presentation.ImportSessionViewModel
+import com.balius.galius.feature.media.presentation.player.VideoPlayerReducer
+import com.balius.galius.feature.media.presentation.player.VideoPlayerViewModel
 import com.balius.galius.feature.media.presentation.viewer.MediaViewerReducer
 import com.balius.galius.feature.media.presentation.viewer.MediaViewerViewModel
 import com.balius.galius.feature.more.presentation.MoreReducer
@@ -81,6 +83,7 @@ val appModule = module {
     factoryOf(::MoreReducer)
     factoryOf(::ManageTagsReducer)
     factoryOf(::MediaViewerReducer)
+    factoryOf(::VideoPlayerReducer)
 
     viewModelOf(::HomeViewModel)
     viewModelOf(::SearchViewModel)
@@ -96,6 +99,14 @@ val appModule = module {
             observeMediaTagsUseCase = get(),
             observeCategoriesUseCase = get(),
             setMediaTagUseCase = get(),
+        )
+    }
+    viewModel { params ->
+        VideoPlayerViewModel(
+            startMediaId = params.get(),
+            source = params.get(),
+            reducer = get(),
+            observeBrowseMediaUseCase = get(),
         )
     }
 }

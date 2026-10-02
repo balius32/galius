@@ -12,3 +12,9 @@ data class MediaViewerRoute(
     val startMediaId: String,
     val source: MediaBrowseSource,
 ) : NavKey
+
+@Serializable
+data class VideoPlayerRoute(
+    val startMediaId: String,
+    val source: MediaBrowseSource,
+) : NavKey
