@@ -52,6 +52,8 @@ Implement tokens in:
 Use `GaliusTheme`, `MaterialTheme`, and `GaliusThemeTokens` for colors/typography/spacing.
 Do not invent ad-hoc hex values in feature UI.
 
-Bottom navigation tabs: **Home · Search · More**.
+Bottom navigation tabs: **Home · Search · Settings**.
+
+Theme: dark by default; Settings supports **System / Dark / Light** plus luminescence accent. Prefer `MaterialTheme` / `GaliusThemeTokens` over hardcoded whites.
 
 All user-visible copy lives in `res/values/strings.xml`.

@@ -1,7 +1,9 @@
 package com.balius.galius.core.navigation
 
 import android.app.Activity
+import android.os.SystemClock
 import android.provider.MediaStore
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -18,6 +20,7 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -30,6 +33,7 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import com.balius.galius.R
 import com.balius.galius.feature.home.presentation.HomeRoute
 import com.balius.galius.feature.media.data.local.MediaReadPermission
 import com.balius.galius.feature.media.data.local.MediaStoreDeleteUriResolver
@@ -37,8 +41,8 @@ import com.balius.galius.feature.media.presentation.ImportEffect
 import com.balius.galius.feature.media.presentation.ImportSessionViewModel
 import com.balius.galius.feature.media.presentation.player.VideoPlayerRoute as VideoPlayerScreenRoute
 import com.balius.galius.feature.media.presentation.viewer.MediaViewerRoute as MediaViewerScreenRoute
-import com.balius.galius.feature.more.presentation.MoreRoute
 import com.balius.galius.feature.search.presentation.SearchRoute
+import com.balius.galius.feature.settings.presentation.SettingsRoute
 import com.balius.galius.feature.tags.presentation.ManageTagsRoute
 import com.balius.galius.ui.theme.GaliusSpacing
 import kotlinx.coroutines.launch
@@ -60,8 +64,9 @@ fun GaliusNavHost(
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions(),
     ) { grants ->
-        val granted = grants.values.any { it }
-        importSessionViewModel.onMediaPermissionResult(granted)
+        importSessionViewModel.onMediaPermissionResult(
+            MediaReadPermission.isGranted(grants),
+        )
     }
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
@@ -151,6 +156,29 @@ fun GaliusNavHost(
         backStack.add(route)
     }
 
+    var lastRootBackPressAt by remember { mutableLongStateOf(0L) }
+    val atRoot = backStack.size <= 1
+
+    fun onRootBackPress() {
+        val now = SystemClock.elapsedRealtime()
+        if (now - lastRootBackPressAt < ROOT_BACK_EXIT_WINDOW_MS) {
+            (context as? Activity)?.finish()
+            return
+        }
+        lastRootBackPressAt = now
+        snackbarHostState.currentSnackbarData?.dismiss()
+        scope.launch {
+            snackbarHostState.showSnackbar(
+                message = context.getString(R.string.nav_press_back_again_to_exit),
+                duration = SnackbarDuration.Short,
+            )
+        }
+    }
+
+    BackHandler(enabled = atRoot) {
+        onRootBackPress()
+    }
+
     val contentBottomPadding = if (showBottomBar) {
         GaliusSpacing.xxl + GaliusSpacing.xl
     } else {
@@ -164,6 +192,8 @@ fun GaliusNavHost(
                 if (backStack.size > 1) {
                     backStack.removeLastOrNull()
                     currentRoute = backStack.lastOrNull() as? TopLevelRoute ?: currentRoute
+                } else {
+                    onRootBackPress()
                 }
             },
             modifier = Modifier.fillMaxSize(),
@@ -192,8 +222,8 @@ fun GaliusNavHost(
                         },
                     )
                 }
-                entry<TopLevelRoute.More> {
-                    MoreRoute(
+                entry<TopLevelRoute.Settings> {
+                    SettingsRoute(
                         onImportClick = importSessionViewModel::onImportClick,
                         onManageTagsClick = { backStack.add(ManageTagsRoute) },
                         contentBottomPadding = contentBottomPadding,
@@ -274,3 +304,6 @@ fun GaliusNavHost(
         }
     }
 }
+
+private const val ROOT_BACK_EXIT_WINDOW_MS = 2_000L
+

@@ -19,8 +19,13 @@ object MediaReadPermission {
 
     fun hasAccess(context: Context): Boolean {
         val permissions = requiredPermissions()
-        return permissions.any { permission ->
+        return permissions.all { permission ->
             ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
         }
+    }
+
+    fun isGranted(grants: Map<String, Boolean>): Boolean {
+        val required = requiredPermissions()
+        return required.all { grants[it] == true }
     }
 }

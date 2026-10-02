@@ -63,7 +63,6 @@ import com.balius.galius.R
 import com.balius.galius.feature.media.domain.model.MediaBrowseSource
 import com.balius.galius.feature.media.domain.model.MediaItem
 import com.balius.galius.ui.theme.AccentCyan
-import com.balius.galius.ui.theme.CanvasBase
 import com.balius.galius.ui.theme.GaliusSpacing
 import com.balius.galius.ui.theme.GaliusThemeTokens
 import java.io.File
@@ -154,7 +153,7 @@ fun VideoPlayerScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(CanvasBase),
+            .background(GaliusThemeTokens.colors.canvas),
     ) {
         if (state.items.isEmpty()) {
             Text(

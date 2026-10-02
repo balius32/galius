@@ -55,7 +55,6 @@ import com.balius.galius.feature.media.presentation.components.MediaDetailsSheet
 import com.balius.galius.feature.media.presentation.components.MediaTagPickerSheet
 import com.balius.galius.feature.media.presentation.components.MediaThumbCard
 import com.balius.galius.ui.theme.AccentCyan
-import com.balius.galius.ui.theme.CanvasBase
 import com.balius.galius.ui.theme.GaliusSpacing
 import com.balius.galius.ui.theme.GaliusTheme
 import com.balius.galius.ui.theme.GaliusThemeTokens
@@ -161,7 +160,7 @@ fun HomeScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(CanvasBase),
+            .background(colors.canvas),
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             GalliusTopBar(
@@ -377,7 +376,7 @@ private fun EmptyVault(
         Text(
             text = stringResource(R.string.home_empty_title),
             style = typography.headlineMd,
-            color = androidx.compose.ui.graphics.Color.White,
+            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(GaliusSpacing.sm))

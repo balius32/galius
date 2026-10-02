@@ -3,10 +3,11 @@ package com.balius.galius.core.navigation
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Settings
 import androidx.navigation3.runtime.NavKey
 import com.balius.galius.R
 import kotlinx.serialization.Serializable
@@ -20,7 +21,7 @@ sealed interface TopLevelRoute : NavKey {
     data object Search : TopLevelRoute
 
     @Serializable
-    data object More : TopLevelRoute
+    data object Settings : TopLevelRoute
 }
 
 data class TopLevelDestination(
@@ -47,10 +48,10 @@ val topLevelDestinations = listOf(
         unselectedIcon = Icons.Outlined.Search,
     ),
     TopLevelDestination(
-        route = TopLevelRoute.More,
-        labelRes = R.string.nav_more,
-        contentDescriptionRes = R.string.nav_more_cd,
-        selectedIcon = Icons.Filled.MoreHoriz,
-        unselectedIcon = Icons.Filled.MoreHoriz,
+        route = TopLevelRoute.Settings,
+        labelRes = R.string.nav_settings,
+        contentDescriptionRes = R.string.nav_settings_cd,
+        selectedIcon = Icons.Filled.Settings,
+        unselectedIcon = Icons.Outlined.Settings,
     ),
 )

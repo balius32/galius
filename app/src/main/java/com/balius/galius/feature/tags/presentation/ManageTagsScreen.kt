@@ -36,6 +36,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -64,7 +65,6 @@ import com.balius.galius.feature.tags.domain.model.CategoryWithTags
 import com.balius.galius.feature.tags.domain.model.Tag
 import com.balius.galius.feature.tags.domain.model.TagColorKey
 import com.balius.galius.ui.theme.AccentIndigo
-import com.balius.galius.ui.theme.CanvasBase
 import com.balius.galius.ui.theme.CardSurface
 import com.balius.galius.ui.theme.ElevatedSurface
 import com.balius.galius.ui.theme.GaliusRadius
@@ -143,7 +143,7 @@ fun ManageTagsScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(CanvasBase)
+            .background(GaliusThemeTokens.colors.canvas)
             .windowInsetsPadding(WindowInsets.statusBars)
             .imePadding()
             .padding(horizontal = GaliusSpacing.margin)
@@ -160,13 +160,13 @@ fun ManageTagsScreen(
                 Icon(
                     imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
                     contentDescription = stringResource(R.string.action_close),
-                    tint = Color.White,
+                    tint = MaterialTheme.colorScheme.onSurface,
                 )
             }
             Text(
                 text = stringResource(R.string.tags_label),
                 style = typography.headlineLgMobile,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
             )
         }
 
@@ -243,7 +243,7 @@ private fun CreateCategoryCard(
                 Icon(
                     imageVector = Icons.Outlined.FolderSpecial,
                     contentDescription = null,
-                    tint = Color.White,
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(18.dp),
                 )
             }
@@ -251,7 +251,7 @@ private fun CreateCategoryCard(
                 Text(
                     text = stringResource(R.string.create_category),
                     style = typography.headlineSm,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
                     text = stringResource(R.string.manage_create_category_subtitle),
@@ -296,7 +296,7 @@ private fun CreateCategoryCard(
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(
                 containerColor = AccentIndigo,
-                contentColor = Color.White,
+                contentColor = MaterialTheme.colorScheme.onSurface,
             ),
             shape = RoundedCornerShape(GaliusRadius.md),
         ) {
@@ -357,7 +357,7 @@ private fun CategoryManageCard(
                     Text(
                         text = item.category.name,
                         style = typography.headlineSm,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                     Box(
                         modifier = Modifier
@@ -411,7 +411,7 @@ private fun CategoryManageCard(
                     Text(
                         text = stringResource(R.string.manage_add_tag),
                         style = typography.labelPill,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                 }
             }
@@ -501,7 +501,7 @@ private fun AccentSwatch(
             .background(accent.content)
             .border(
                 width = if (selected) 2.dp else 0.dp,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 shape = CircleShape,
             )
             .clickable(onClick = onClick),
@@ -511,7 +511,7 @@ private fun AccentSwatch(
             Icon(
                 imageVector = Icons.Outlined.Check,
                 contentDescription = null,
-                tint = Color.White,
+                tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.size(18.dp),
             )
         }
@@ -533,7 +533,7 @@ private fun DraftField(
         value = value,
         onValueChange = onValueChange,
         singleLine = true,
-        textStyle = typography.bodyMd.copy(color = Color.White),
+        textStyle = typography.bodyMd.copy(color = MaterialTheme.colorScheme.onSurface),
         cursorBrush = SolidColor(AccentIndigo),
         modifier = modifier
             .fillMaxWidth()

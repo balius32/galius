@@ -26,6 +26,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -136,7 +137,7 @@ private fun DetailsSheetBody(
                 Text(
                     text = item.displayName,
                     style = typography.headlineMd,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -158,7 +159,7 @@ private fun DetailsSheetBody(
                 Icon(
                     imageVector = if (favorited) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
                     contentDescription = stringResource(R.string.action_favorite),
-                    tint = if (favorited) Color(0xFFEF4444) else Color.White,
+                    tint = if (favorited) Color(0xFFEF4444) else MaterialTheme.colorScheme.onSurface,
                 )
             }
         }
@@ -181,7 +182,7 @@ private fun DetailsSheetBody(
                 Text(
                     text = dateLabel,
                     style = typography.bodyMd,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
             }
             Column(
@@ -196,7 +197,7 @@ private fun DetailsSheetBody(
                 Text(
                     text = formatLabel,
                     style = typography.bodyMd,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
             }
         }
@@ -274,7 +275,7 @@ private fun DetailsSheetBody(
             shape = RoundedCornerShape(GaliusRadius.lg),
             colors = ButtonDefaults.buttonColors(
                 containerColor = AccentIndigo,
-                contentColor = Color.White,
+                contentColor = MaterialTheme.colorScheme.onSurface,
             ),
         ) {
             Text(

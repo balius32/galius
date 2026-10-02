@@ -108,3 +108,61 @@ val TagNeutral = Color(0xFF8E929B)
 val TagNeutralContainer = Color(0x0FFFFFFF)
 
 // endregion
+
+// region Light surfaces & Material roles
+
+val LightBackground = Color(0xFFF5F5F8)
+val LightOnBackground = Color(0xFF1A1C20)
+val LightSurface = Color(0xFFF5F5F8)
+val LightSurfaceDim = Color(0xFFE8E8EC)
+val LightSurfaceBright = Color(0xFFFFFFFF)
+val LightSurfaceContainerLowest = Color(0xFFFFFFFF)
+val LightSurfaceContainerLow = Color(0xFFEFEEF2)
+val LightSurfaceContainer = Color(0xFFE9E8ED)
+val LightSurfaceContainerHigh = Color(0xFFE3E2E7)
+val LightSurfaceContainerHighest = Color(0xFFDDDCE1)
+val LightOnSurface = Color(0xFF1A1C20)
+val LightOnSurfaceVariant = Color(0xFF464554)
+val LightInverseSurface = Color(0xFF2F3035)
+val LightInverseOnSurface = Color(0xFFF2F0F6)
+val LightOutline = Color(0xFF777680)
+val LightOutlineVariant = Color(0xFFC7C4D6)
+val LightSurfaceTint = Color(0xFF4F4CCD)
+val LightSurfaceVariant = Color(0xFFE3E2E7)
+
+val LightPrimary = Color(0xFF4F4CCD)
+val LightOnPrimary = Color(0xFFFFFFFF)
+val LightPrimaryContainer = Color(0xFF5856D6)
+val LightOnPrimaryContainer = Color(0xFFFFFFFF)
+val LightInversePrimary = Color(0xFFC2C1FF)
+
+val LightSecondary = Color(0xFF006A65)
+val LightOnSecondary = Color(0xFFFFFFFF)
+val LightSecondaryContainer = Color(0xFF00C5BC)
+val LightOnSecondaryContainer = Color(0xFF00201E)
+
+val LightTertiary = Color(0xFF006685)
+val LightOnTertiary = Color(0xFFFFFFFF)
+val LightTertiaryContainer = Color(0xFF68D3FF)
+val LightOnTertiaryContainer = Color(0xFF001F2A)
+
+val LightError = Color(0xFFBA1A1A)
+val LightOnError = Color(0xFFFFFFFF)
+val LightErrorContainer = Color(0xFFFFDAD6)
+val LightOnErrorContainer = Color(0xFF410002)
+
+val LightCanvasBase = Color(0xFFF2F2F6)
+val LightCardSurface = Color(0xFFFFFFFF)
+val LightElevatedSurface = Color(0xFFF7F7FA)
+val LightGhostBorder = Color(0x14000000)
+val LightGhostBorderSubtle = Color(0x0D000000)
+val LightGhostBorderStrong = Color(0x1F000000)
+val LightGhostFill = Color(0x0F000000)
+val LightGlassNavBackground = Color(0xB8FFFFFF)
+val LightSearchFieldBackground = Color(0xD9FFFFFF)
+val LightScrimBottom = Color(0xF2F2F2F6)
+val LightMetadataDescription = Color(0xA61A1C20)
+val LightMetadataCaption = Color(0x731A1C20)
+val LightTagNeutralContainer = Color(0x0F000000)
+
+// endregion

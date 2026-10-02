@@ -34,4 +34,5 @@ app/src/main/java/com/balius/galius/
   common/        # Shared UI / utilities
   feature/       # home, search, media, tags, more
   ui/theme/      # Design system tokens
+brand/           # Brand assets (SVG logo source)
 ```

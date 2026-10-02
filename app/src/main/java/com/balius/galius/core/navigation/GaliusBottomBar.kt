@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -27,18 +28,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.balius.galius.ui.theme.AccentCyan
 import com.balius.galius.ui.theme.GaliusSpacing
 import com.balius.galius.ui.theme.GaliusTheme
 import com.balius.galius.ui.theme.GaliusThemeTokens
-import com.balius.galius.ui.theme.GhostBorder
-import com.balius.galius.ui.theme.GhostFill
-import com.balius.galius.ui.theme.Outline
 import com.balius.galius.ui.theme.PillShape
 
 /**
  * Floating frosted glass bottom bar — Stitch gallius catalog chrome.
- * Tabs: Home · Search · More.
+ * Tabs: Home · Search · Settings.
  */
 @Composable
 fun GaliusBottomBar(
@@ -60,8 +57,8 @@ fun GaliusBottomBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(PillShape)
-                .background(Color(0xD914161C))
-                .border(1.dp, GhostBorder, PillShape)
+                .background(colors.glassNav)
+                .border(1.dp, colors.ghostBorder, PillShape)
                 .padding(GaliusSpacing.xs),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
@@ -89,8 +86,11 @@ private fun BottomBarItem(
     modifier: Modifier = Modifier,
 ) {
     val typography = GaliusThemeTokens.typography
+    val colors = GaliusThemeTokens.colors
+    val scheme = MaterialTheme.colorScheme
     val label = stringResource(destination.labelRes)
     val contentDescription = stringResource(destination.contentDescriptionRes)
+    val unselected = scheme.onSurfaceVariant
 
     Column(
         modifier = modifier
@@ -99,8 +99,8 @@ private fun BottomBarItem(
             .then(
                 if (selected) {
                     Modifier
-                        .background(GhostFill)
-                        .border(1.dp, GhostBorder, PillShape)
+                        .background(colors.ghostFill)
+                        .border(1.dp, colors.ghostBorder, PillShape)
                 } else {
                     Modifier
                 },
@@ -116,13 +116,13 @@ private fun BottomBarItem(
         Icon(
             imageVector = if (selected) destination.selectedIcon else destination.unselectedIcon,
             contentDescription = contentDescription,
-            tint = if (selected) selectedContentColor else Outline,
+            tint = if (selected) selectedContentColor else unselected,
             modifier = Modifier.size(20.dp),
         )
         Text(
             text = label,
             style = typography.labelPill,
-            color = if (selected) Color.White else Outline,
+            color = if (selected) scheme.onSurface else unselected,
         )
         if (selected) {
             Box(
@@ -130,7 +130,7 @@ private fun BottomBarItem(
                     .padding(top = 2.dp)
                     .size(4.dp)
                     .clip(CircleShape)
-                    .background(AccentCyan),
+                    .background(colors.accentCyan),
             )
         }
     }

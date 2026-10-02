@@ -4,8 +4,10 @@ import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
 import android.provider.OpenableColumns
+import android.util.Log
 import com.balius.galius.core.database.MediaDao
 import com.balius.galius.core.database.MediaEntity
+import com.balius.galius.feature.media.data.local.MediaMime
 import com.balius.galius.feature.media.data.local.MediaStoreDeleteUriResolver
 import com.balius.galius.feature.media.data.local.MediaStoreRestorer
 import com.balius.galius.feature.media.data.local.VaultFileStore
@@ -13,11 +15,11 @@ import com.balius.galius.feature.media.domain.model.MediaItem
 import com.balius.galius.feature.media.domain.model.MediaType
 import com.balius.galius.feature.media.domain.repository.MediaRepository
 import com.balius.galius.feature.media.domain.repository.RestoreRemoveResult
+import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import java.util.UUID
 
 class MediaRepositoryImpl(
     private val context: Context,
@@ -43,19 +45,22 @@ class MediaRepositoryImpl(
         }
 
     override suspend fun importFromUri(uri: Uri): MediaItem = withContext(Dispatchers.IO) {
-        val mimeType = context.contentResolver.getType(uri).orEmpty()
+        val rawMime = context.contentResolver.getType(uri)
         val displayName = queryDisplayName(uri) ?: "media_${System.currentTimeMillis()}"
-        val mediaType = mimeType.toMediaType()
+        val mediaType = MediaMime.toMediaType(rawMime)
+        val normalizedMime = MediaMime.normalize(
+            mimeType = rawMime,
+            mediaType = mediaType,
+            displayName = displayName,
+        )
         val mediaStoreUri = deleteUriResolver.resolveForDelete(listOf(uri)).firstOrNull() ?: uri
         val originalRelativePath = queryRelativePath(mediaStoreUri) ?: queryRelativePath(uri)
-        val relativePath = vaultFileStore.copyFromUri(uri, mimeType.ifBlank { null })
+        val relativePath = vaultFileStore.copyFromUri(uri, normalizedMime)
         val entity = MediaEntity(
             id = UUID.randomUUID().toString(),
             relativePath = relativePath,
             displayName = displayName,
-            mimeType = mimeType.ifBlank {
-                if (mediaType == MediaType.Video) "video/*" else "image/*"
-            },
+            mimeType = normalizedMime,
             mediaType = mediaType.name,
             createdAtMillis = System.currentTimeMillis(),
             originalRelativePath = originalRelativePath,
@@ -74,18 +79,25 @@ class MediaRepositoryImpl(
             entities.forEach { entity ->
                 runCatching {
                     val absolute = vaultFileStore.absolutePath(entity.relativePath)
+                    val mediaType = runCatching { MediaType.valueOf(entity.mediaType) }
+                        .getOrDefault(MediaType.Photo)
                     mediaStoreRestorer.restoreFile(
                         vaultAbsolutePath = absolute,
                         displayName = entity.displayName,
-                        mimeType = entity.mimeType,
-                        mediaType = runCatching { MediaType.valueOf(entity.mediaType) }
-                            .getOrDefault(MediaType.Photo),
+                        mimeType = MediaMime.normalize(
+                            mimeType = entity.mimeType,
+                            mediaType = mediaType,
+                            displayName = entity.displayName,
+                            relativePath = entity.relativePath,
+                        ),
+                        mediaType = mediaType,
                         originalRelativePath = entity.originalRelativePath,
                     )
                     vaultFileStore.delete(entity.relativePath)
                     removedIds += entity.id
                     restored += 1
-                }.onFailure {
+                }.onFailure { error ->
+                    Log.e(TAG, "restoreAndRemove failed for ${entity.id} (${entity.displayName})", error)
                     failed += 1
                 }
             }
@@ -138,6 +150,7 @@ class MediaRepositoryImpl(
             }
         }.getOrNull()
 
-    private fun String.toMediaType(): MediaType =
-        if (startsWith("video/")) MediaType.Video else MediaType.Photo
+    private companion object {
+        const val TAG = "MediaRepositoryImpl"
+    }
 }

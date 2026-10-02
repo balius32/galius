@@ -20,10 +20,21 @@ import com.balius.galius.feature.media.presentation.player.VideoPlayerReducer
 import com.balius.galius.feature.media.presentation.player.VideoPlayerViewModel
 import com.balius.galius.feature.media.presentation.viewer.MediaViewerReducer
 import com.balius.galius.feature.media.presentation.viewer.MediaViewerViewModel
-import com.balius.galius.feature.more.presentation.MoreReducer
-import com.balius.galius.feature.more.presentation.MoreViewModel
 import com.balius.galius.feature.search.presentation.SearchReducer
 import com.balius.galius.feature.search.presentation.SearchViewModel
+import com.balius.galius.feature.settings.data.AndroidDatabaseSizeProvider
+import com.balius.galius.feature.settings.data.BiometricAppLockAuthenticator
+import com.balius.galius.feature.settings.data.SettingsRepositoryImpl
+import com.balius.galius.feature.settings.domain.AppLockAuthenticator
+import com.balius.galius.feature.settings.domain.repository.DatabaseSizeProvider
+import com.balius.galius.feature.settings.domain.repository.SettingsRepository
+import com.balius.galius.feature.settings.domain.usecase.ObserveLibraryStorageUseCase
+import com.balius.galius.feature.settings.domain.usecase.ObserveSettingsPreferencesUseCase
+import com.balius.galius.feature.settings.domain.usecase.SetAccentUseCase
+import com.balius.galius.feature.settings.domain.usecase.SetAppLockEnabledUseCase
+import com.balius.galius.feature.settings.domain.usecase.SetThemeModeUseCase
+import com.balius.galius.feature.settings.presentation.SettingsReducer
+import com.balius.galius.feature.settings.presentation.SettingsViewModel
 import com.balius.galius.feature.tags.data.repository.TaxonomyRepositoryImpl
 import com.balius.galius.feature.tags.domain.repository.TaxonomyRepository
 import com.balius.galius.feature.tags.domain.usecase.CreateCategoryUseCase
@@ -64,6 +75,9 @@ val appModule = module {
         MediaRepositoryImpl(androidContext(), get(), get(), get(), get())
     } bind MediaRepository::class
     single { TaxonomyRepositoryImpl(get()) } bind TaxonomyRepository::class
+    single { SettingsRepositoryImpl(androidContext()) } bind SettingsRepository::class
+    single { AndroidDatabaseSizeProvider(androidContext()) } bind DatabaseSizeProvider::class
+    single { BiometricAppLockAuthenticator(androidContext()) } bind AppLockAuthenticator::class
 
     factoryOf(::ImportMediaUseCase)
     factoryOf(::ObserveLibraryUseCase)
@@ -77,17 +91,22 @@ val appModule = module {
     factoryOf(::DeleteTagUseCase)
     factoryOf(::ObserveMediaTagsUseCase)
     factoryOf(::SetMediaTagUseCase)
+    factoryOf(::ObserveSettingsPreferencesUseCase)
+    factoryOf(::SetThemeModeUseCase)
+    factoryOf(::SetAccentUseCase)
+    factoryOf(::SetAppLockEnabledUseCase)
+    factoryOf(::ObserveLibraryStorageUseCase)
 
     factoryOf(::HomeReducer)
     factoryOf(::SearchReducer)
-    factoryOf(::MoreReducer)
+    factoryOf(::SettingsReducer)
     factoryOf(::ManageTagsReducer)
     factoryOf(::MediaViewerReducer)
     factoryOf(::VideoPlayerReducer)
 
     viewModelOf(::HomeViewModel)
     viewModelOf(::SearchViewModel)
-    viewModelOf(::MoreViewModel)
+    viewModelOf(::SettingsViewModel)
     viewModelOf(::ImportSessionViewModel)
     viewModelOf(::ManageTagsViewModel)
     viewModel { params ->

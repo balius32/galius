@@ -1,0 +1,438 @@
+package com.balius.galius.feature.settings.presentation
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Fingerprint
+import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.Storage
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.balius.galius.R
+import com.balius.galius.common.model.AccentOption
+import com.balius.galius.common.model.ThemeMode
+import com.balius.galius.feature.settings.domain.AppLockAuthResult
+import com.balius.galius.feature.settings.domain.AppLockAuthenticator
+import com.balius.galius.feature.settings.domain.model.LibraryStorageStats
+import com.balius.galius.feature.settings.presentation.components.AccentSwatchRow
+import com.balius.galius.feature.settings.presentation.components.StorageAllocationBar
+import com.balius.galius.feature.settings.presentation.components.ThemeModeSegmentedControl
+import com.balius.galius.ui.theme.GaliusRadius
+import com.balius.galius.ui.theme.GaliusSpacing
+import com.balius.galius.ui.theme.GaliusTheme
+import com.balius.galius.ui.theme.GaliusThemeTokens
+import com.balius.galius.ui.theme.PillShape
+import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
+import org.koin.core.context.GlobalContext
+
+@Composable
+fun SettingsRoute(
+    onImportClick: () -> Unit,
+    onManageTagsClick: () -> Unit,
+    contentBottomPadding: Dp,
+    viewModel: SettingsViewModel = koinViewModel(),
+    appLockAuthenticator: AppLockAuthenticator = remember {
+        GlobalContext.get().get()
+    },
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val activity = context as? FragmentActivity
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val lockTitle = stringResource(R.string.app_lock_title)
+    val lockSubtitle = stringResource(R.string.app_lock_subtitle)
+
+    fun showMessage(messageRes: Int) {
+        scope.launch {
+            snackbarHostState.currentSnackbarData?.dismiss()
+            snackbarHostState.showSnackbar(context.getString(messageRes))
+        }
+    }
+
+    BoxWithSnackbar(snackbarHostState = snackbarHostState) {
+        SettingsScreen(
+            state = state,
+            onThemeModeSelected = { viewModel.onIntent(SettingsIntent.ThemeModeSelected(it)) },
+            onAccentSelected = { viewModel.onIntent(SettingsIntent.AccentSelected(it)) },
+            onToggleAppLock = { enabled ->
+                if (!enabled) {
+                    viewModel.onIntent(SettingsIntent.ToggleAppLock(false))
+                } else {
+                    val host = activity
+                    if (host == null || !appLockAuthenticator.canAuthenticate()) {
+                        showMessage(R.string.app_lock_unavailable)
+                    } else {
+                        appLockAuthenticator.authenticate(
+                            activity = host,
+                            title = lockTitle,
+                            subtitle = lockSubtitle,
+                        ) { result ->
+                            when (result) {
+                                AppLockAuthResult.Success ->
+                                    viewModel.onIntent(SettingsIntent.ToggleAppLock(true))
+                                AppLockAuthResult.Canceled -> Unit
+                                AppLockAuthResult.Unavailable ->
+                                    showMessage(R.string.app_lock_unavailable)
+                                AppLockAuthResult.Error ->
+                                    showMessage(R.string.app_lock_enable_failed)
+                            }
+                        }
+                    }
+                }
+            },
+            onImportClick = onImportClick,
+            onManageTagsClick = onManageTagsClick,
+            contentBottomPadding = contentBottomPadding,
+        )
+    }
+}
+
+@Composable
+private fun BoxWithSnackbar(
+    snackbarHostState: SnackbarHostState,
+    content: @Composable () -> Unit,
+) {
+    androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxSize()) {
+        content()
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter),
+        )
+    }
+}
+
+@Composable
+fun SettingsScreen(
+    state: SettingsState,
+    onThemeModeSelected: (ThemeMode) -> Unit,
+    onAccentSelected: (AccentOption) -> Unit,
+    onToggleAppLock: (Boolean) -> Unit,
+    onImportClick: () -> Unit,
+    onManageTagsClick: () -> Unit,
+    contentBottomPadding: Dp,
+    modifier: Modifier = Modifier,
+) {
+    val typography = GaliusThemeTokens.typography
+    val colors = GaliusThemeTokens.colors
+    val scheme = MaterialTheme.colorScheme
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(colors.canvas)
+            .windowInsetsPadding(WindowInsets.statusBars)
+            .verticalScroll(rememberScrollState())
+            .padding(bottom = contentBottomPadding)
+            .padding(horizontal = GaliusSpacing.margin),
+        verticalArrangement = Arrangement.spacedBy(GaliusSpacing.lg),
+    ) {
+        Spacer(modifier = Modifier.height(GaliusSpacing.sm))
+        Text(
+            text = stringResource(R.string.settings_title),
+            style = typography.headlineLgMobile,
+            color = scheme.onSurface,
+        )
+
+        SettingsSection(
+            icon = {
+                Icon(
+                    imageVector = Icons.Outlined.Palette,
+                    contentDescription = null,
+                    tint = scheme.tertiary,
+                    modifier = Modifier.size(18.dp),
+                )
+            },
+            title = stringResource(R.string.settings_appearance),
+        ) {
+            SettingsCard {
+                ThemeModeSegmentedControl(
+                    selected = state.themeMode,
+                    onSelected = onThemeModeSelected,
+                )
+                Spacer(modifier = Modifier.height(GaliusSpacing.md))
+                AccentSwatchRow(
+                    selected = state.accent,
+                    onSelected = onAccentSelected,
+                )
+            }
+        }
+
+        SettingsSection(
+            icon = {
+                Icon(
+                    imageVector = Icons.Outlined.Fingerprint,
+                    contentDescription = null,
+                    tint = colors.accentCyan,
+                    modifier = Modifier.size(18.dp),
+                )
+            },
+            title = stringResource(R.string.settings_security),
+            trailing = {
+                Text(
+                    text = stringResource(R.string.settings_zero_cloud),
+                    style = typography.labelPill,
+                    color = colors.accentCyan,
+                    modifier = Modifier
+                        .clip(PillShape)
+                        .background(scheme.surfaceBright)
+                        .padding(horizontal = GaliusSpacing.sm, vertical = 2.dp),
+                )
+            },
+        ) {
+            SettingsCard {
+                BiometricLockRow(
+                    checked = state.appLockEnabled,
+                    onCheckedChange = onToggleAppLock,
+                )
+            }
+        }
+
+        SettingsSection(
+            icon = {
+                Icon(
+                    imageVector = Icons.Outlined.Storage,
+                    contentDescription = null,
+                    tint = scheme.primary,
+                    modifier = Modifier.size(18.dp),
+                )
+            },
+            title = stringResource(R.string.settings_library),
+            trailing = {
+                Text(
+                    text = stringResource(
+                        R.string.settings_storage_total,
+                        StorageSizeFormatter.format(state.storage.totalBytes),
+                    ),
+                    style = typography.labelNumeric,
+                    color = scheme.onSurfaceVariant,
+                )
+            },
+        ) {
+            SettingsCard {
+                StorageAllocationBar(stats = state.storage)
+                Spacer(modifier = Modifier.height(GaliusSpacing.md))
+                SettingsNavRow(
+                    title = stringResource(R.string.settings_manage_tags),
+                    onClick = onManageTagsClick,
+                )
+                SettingsNavRow(
+                    title = stringResource(R.string.action_import),
+                    onClick = onImportClick,
+                )
+            }
+        }
+
+        Column(verticalArrangement = Arrangement.spacedBy(GaliusSpacing.xs)) {
+            Text(
+                text = stringResource(R.string.settings_about),
+                style = typography.labelPill,
+                color = scheme.onSurfaceVariant,
+            )
+            Text(
+                text = stringResource(R.string.settings_version, "1.0"),
+                style = typography.bodySm,
+                color = colors.metadataCaption,
+            )
+        }
+        Spacer(modifier = Modifier.height(GaliusSpacing.lg))
+    }
+}
+
+@Composable
+private fun SettingsSection(
+    icon: @Composable () -> Unit,
+    title: String,
+    trailing: (@Composable () -> Unit)? = null,
+    content: @Composable () -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(GaliusSpacing.sm)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(GaliusSpacing.sm),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                icon()
+                Text(
+                    text = title,
+                    style = GaliusThemeTokens.typography.labelPill,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
+            trailing?.invoke()
+        }
+        content()
+    }
+}
+
+@Composable
+private fun SettingsCard(
+    content: @Composable () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(GaliusRadius.xl))
+            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .padding(GaliusSpacing.md),
+    ) {
+        content()
+    }
+}
+
+@Composable
+private fun BiometricLockRow(
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    val scheme = MaterialTheme.colorScheme
+    val colors = GaliusThemeTokens.colors
+    val typography = GaliusThemeTokens.typography
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(GaliusSpacing.sm),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(GaliusRadius.md))
+                .background(scheme.surfaceContainer),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Fingerprint,
+                contentDescription = null,
+                tint = scheme.primary,
+            )
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = stringResource(R.string.settings_app_lock),
+                style = typography.bodyMd,
+                fontWeight = FontWeight.SemiBold,
+                color = scheme.onSurface,
+            )
+            Text(
+                text = stringResource(R.string.settings_app_lock_subtitle),
+                style = typography.bodySm,
+                color = colors.metadataDescription,
+            )
+        }
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = SwitchDefaults.colors(
+                checkedTrackColor = scheme.primaryContainer,
+                checkedThumbColor = scheme.onPrimary,
+            ),
+        )
+    }
+}
+
+@Composable
+private fun SettingsNavRow(
+    title: String,
+    onClick: () -> Unit,
+) {
+    Text(
+        text = title,
+        style = GaliusThemeTokens.typography.bodyLg,
+        color = MaterialTheme.colorScheme.onSurface,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = GaliusSpacing.md),
+    )
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF0F1115, heightDp = 900)
+@Composable
+private fun SettingsScreenDarkPreview() {
+    GaliusTheme(darkTheme = true, accent = AccentOption.ElectricIndigo) {
+        SettingsScreen(
+            state = SettingsState(
+                storage = LibraryStorageStats(
+                    photoBytes = 7_200_000_000,
+                    videoBytes = 3_200_000_000,
+                    dbBytes = 42_000_000,
+                    itemCount = 1420,
+                ),
+            ),
+            onThemeModeSelected = {},
+            onAccentSelected = {},
+            onToggleAppLock = {},
+            onImportClick = {},
+            onManageTagsClick = {},
+            contentBottomPadding = 96.dp,
+        )
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF2F2F6, heightDp = 900)
+@Composable
+private fun SettingsScreenLightPreview() {
+    GaliusTheme(darkTheme = false, accent = AccentOption.ElectricCyan) {
+        SettingsScreen(
+            state = SettingsState(
+                themeMode = ThemeMode.Light,
+                accent = AccentOption.ElectricCyan,
+                appLockEnabled = true,
+                storage = LibraryStorageStats(
+                    photoBytes = 1_200_000_000,
+                    videoBytes = 800_000_000,
+                    dbBytes = 12_000_000,
+                    itemCount = 42,
+                ),
+            ),
+            onThemeModeSelected = {},
+            onAccentSelected = {},
+            onToggleAppLock = {},
+            onImportClick = {},
+            onManageTagsClick = {},
+            contentBottomPadding = 96.dp,
+        )
+    }
+}

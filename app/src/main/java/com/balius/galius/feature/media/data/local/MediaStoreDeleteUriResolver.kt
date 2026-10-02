@@ -3,6 +3,7 @@ package com.balius.galius.feature.media.data.local
 import android.content.ContentUris
 import android.content.Context
 import android.net.Uri
+import android.os.Build
 import android.provider.MediaStore
 import android.provider.OpenableColumns
 
@@ -28,7 +29,9 @@ class MediaStoreDeleteUriResolver(
 
         val displayName = queryDisplayName(uri) ?: return null
         val size = querySize(uri)
+        // Prefer exact size match; fall back to name-only if size unknown or no hit.
         return findMediaStoreUri(displayName, size)
+            ?: if (size != null) findMediaStoreUri(displayName, size = null) else null
     }
 
     /**
@@ -37,11 +40,10 @@ class MediaStoreDeleteUriResolver(
      */
     private fun resolveFromPickerMediaId(uri: Uri): Uri? {
         val mediaId = uri.lastPathSegment?.toLongOrNull() ?: return null
-        val candidates = listOf(
-            ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, mediaId),
-            ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, mediaId),
-        )
-        return candidates.firstOrNull { existsInMediaStore(it) }
+        return deletableCollections().firstNotNullOfOrNull { collection ->
+            val candidate = ContentUris.withAppendedId(collection, mediaId)
+            candidate.takeIf { existsInMediaStore(it) }
+        }
     }
 
     private fun existsInMediaStore(uri: Uri): Boolean =
@@ -60,19 +62,25 @@ class MediaStoreDeleteUriResolver(
         val path = uri.path.orEmpty()
         // Picker grant URIs also use authority "media" — they are NOT deletable as-is.
         if (path.contains("/picker")) return false
-        return path.contains("/external/") || path.contains("/internal/")
+        return path.contains("/external/") ||
+            path.contains("/internal/") ||
+            path.contains("/downloads")
     }
 
     private fun findMediaStoreUri(displayName: String, size: Long?): Uri? {
-        val collections = listOf(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-            MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-        )
-        for (collection in collections) {
+        for (collection in deletableCollections()) {
             val match = queryCollection(collection, displayName, size)
             if (match != null) return match
         }
         return null
+    }
+
+    private fun deletableCollections(): List<Uri> = buildList {
+        add(MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        add(MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            add(MediaStore.Downloads.EXTERNAL_CONTENT_URI)
+        }
     }
 
     private fun queryCollection(collection: Uri, displayName: String, size: Long?): Uri? {

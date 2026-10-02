@@ -87,12 +87,9 @@ class ImportSessionViewModel(
                     if (pendingDeleteUris.isNotEmpty()) {
                         _effects.emit(ImportEffect.LaunchDeleteRequest(pendingDeleteUris))
                     } else {
+                        // Nothing to retry — originals were not resolvable to MediaStore rows.
                         _effects.emit(
-                            ImportEffect.ShowMessage(
-                                messageRes = R.string.media_delete_failed,
-                                actionLabelRes = R.string.action_retry,
-                                action = ImportSnackbarAction.RetryDelete,
-                            ),
+                            ImportEffect.ShowMessage(messageRes = R.string.media_delete_failed),
                         )
                     }
                 }
@@ -132,11 +129,12 @@ class ImportSessionViewModel(
 
     fun onDeleteRequestLaunchFailed() {
         viewModelScope.launch {
+            val canRetry = pendingDeleteUris.isNotEmpty()
             _effects.emit(
                 ImportEffect.ShowMessage(
                     messageRes = R.string.media_delete_failed,
-                    actionLabelRes = R.string.action_retry,
-                    action = ImportSnackbarAction.RetryDelete,
+                    actionLabelRes = if (canRetry) R.string.action_retry else null,
+                    action = if (canRetry) ImportSnackbarAction.RetryDelete else null,
                 ),
             )
         }

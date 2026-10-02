@@ -9,12 +9,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.balius.galius.R
@@ -56,7 +56,7 @@ fun MediaTagPickerSheet(
             Text(
                 text = stringResource(R.string.media_pick_tag_title),
                 style = typography.headlineSm,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
             )
             if (available.isEmpty()) {
                 Text(
@@ -101,7 +101,7 @@ private fun MediaTagPickerContentPreview() {
         ) {
             Text(
                 text = stringResource(R.string.media_pick_tag_title),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 style = GaliusThemeTokens.typography.headlineSm,
             )
             TagChip(

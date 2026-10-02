@@ -20,10 +20,11 @@ Human summary: `docs/DESIGN.md`. Stitch reference: Downloads `stitch_gallius_med
 
 ## Rules
 
-- Wrap UI in `GaliusTheme`. Theme is **dark-only** — do not re-enable dynamic/light schemes.
+- Wrap UI in `GaliusTheme`. Default brand is dark; Light / System modes are user-selectable in Settings.
+- Prefer theme tokens over hardcoded `Color.White` / `CanvasBase` so Light mode stays readable.
 - Prefer `MaterialTheme.colorScheme` / `typography` / `shapes` for Material roles.
 - Prefer `GaliusThemeTokens.colors` for canvas, card, glass, accents, tag chips, scrims.
 - Prefer `GaliusSpacing` and `GaliusRadius` / `MediaCardShape` / `PillShape` — no magic dens.
 - No hardcoded `#RRGGBB` in feature composables; add a token if missing.
-- Bottom nav labels: Home, Search, More (`nav_home`, `nav_search`, `nav_more`).
+- Bottom nav labels: Home, Search, Settings (`nav_home`, `nav_search`, `nav_settings`).
 - Aspect ratios: posters `2:3`, video/backdrops `16:9`, square `1:1`.

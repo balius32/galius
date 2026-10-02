@@ -30,13 +30,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FolderSpecial
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -57,7 +57,6 @@ import com.balius.galius.feature.tags.domain.model.CategoryWithTags
 import com.balius.galius.feature.tags.domain.model.Tag
 import com.balius.galius.feature.tags.domain.model.TagColorKey
 import com.balius.galius.ui.theme.AccentCyan
-import com.balius.galius.ui.theme.CanvasBase
 import com.balius.galius.ui.theme.CardSurface
 import com.balius.galius.ui.theme.GaliusRadius
 import com.balius.galius.ui.theme.GaliusSpacing
@@ -107,7 +106,7 @@ fun SearchScreen(
         columns = GridCells.Fixed(2),
         modifier = modifier
             .fillMaxSize()
-            .background(CanvasBase)
+            .background(colors.canvas)
             .windowInsetsPadding(WindowInsets.statusBars)
             .padding(horizontal = GaliusSpacing.margin),
         contentPadding = PaddingValues(bottom = contentBottomPadding + GaliusSpacing.lg),
@@ -120,7 +119,7 @@ fun SearchScreen(
                 Text(
                     text = stringResource(R.string.nav_search),
                     style = typography.headlineLgMobile,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
 
                 SectionHeader(
@@ -236,7 +235,7 @@ private fun SectionHeader(
         Text(
             text = title,
             style = typography.labelPill,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f),
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
@@ -289,7 +288,7 @@ private fun CategoryBrowseCard(
         Text(
             text = item.category.name,
             style = typography.headlineSm,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onSurface,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
         )
