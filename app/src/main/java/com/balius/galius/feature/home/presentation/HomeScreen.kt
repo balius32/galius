@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.balius.galius.R
 import com.balius.galius.common.ui.GalliusTopBar
+import com.balius.galius.feature.media.domain.model.MediaBrowseSource
 import com.balius.galius.feature.media.domain.model.MediaItem
 import com.balius.galius.feature.media.domain.model.MediaType
 import com.balius.galius.feature.media.presentation.components.MediaDetailsSheet
@@ -69,6 +70,7 @@ import org.koin.androidx.compose.koinViewModel
 fun HomeRoute(
     onOpenSearch: () -> Unit,
     onImportClick: () -> Unit,
+    onOpenViewer: (mediaId: String, source: MediaBrowseSource) -> Unit,
     contentBottomPadding: Dp,
     viewModel: HomeViewModel = koinViewModel(),
 ) {
@@ -94,7 +96,14 @@ fun HomeRoute(
             onToggleVideosOnly = { viewModel.onIntent(HomeIntent.ToggleVideosOnly) },
             onLongPressItem = { viewModel.onIntent(HomeIntent.LongPressItem(it)) },
             onToggleItem = { viewModel.onIntent(HomeIntent.ToggleItemSelection(it)) },
-            onOpenDetails = { viewModel.onIntent(HomeIntent.OpenDetails(it)) },
+            onOpenMedia = { mediaId ->
+                val source = if (state.videosOnly) {
+                    MediaBrowseSource.LibraryVideosOnly
+                } else {
+                    MediaBrowseSource.Library
+                }
+                onOpenViewer(mediaId, source)
+            },
             onClearSelection = { viewModel.onIntent(HomeIntent.ClearSelection) },
             onRemoveSelected = { viewModel.onIntent(HomeIntent.RemoveSelected) },
             contentBottomPadding = contentBottomPadding,
@@ -139,7 +148,7 @@ fun HomeScreen(
     onToggleVideosOnly: () -> Unit,
     onLongPressItem: (String) -> Unit,
     onToggleItem: (String) -> Unit,
-    onOpenDetails: (String) -> Unit,
+    onOpenMedia: (String) -> Unit,
     onClearSelection: () -> Unit,
     onRemoveSelected: () -> Unit,
     contentBottomPadding: Dp,
@@ -171,8 +180,8 @@ fun HomeScreen(
                     top = GaliusSpacing.sm,
                     bottom = contentBottomPadding + fabClearance,
                 ),
-                horizontalArrangement = Arrangement.spacedBy(GaliusSpacing.sm),
-                verticalArrangement = Arrangement.spacedBy(GaliusSpacing.sm),
+                horizontalArrangement = Arrangement.spacedBy(GaliusSpacing.gutter),
+                verticalArrangement = Arrangement.spacedBy(GaliusSpacing.gutter),
             ) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     FilterChipRow(
@@ -228,7 +237,7 @@ fun HomeScreen(
                                         if (state.selectionMode) {
                                             onToggleItem(item.id)
                                         } else {
-                                            onOpenDetails(item.id)
+                                            onOpenMedia(item.id)
                                         }
                                     },
                                     onLongClick = { onLongPressItem(item.id) },
@@ -400,7 +409,7 @@ private fun HomeScreenEmptyPreview() {
             onToggleVideosOnly = {},
             onLongPressItem = {},
             onToggleItem = {},
-            onOpenDetails = {},
+            onOpenMedia = {},
             onClearSelection = {},
             onRemoveSelected = {},
             contentBottomPadding = 96.dp,
@@ -441,7 +450,7 @@ private fun HomeScreenFilledPreview() {
             onToggleVideosOnly = {},
             onLongPressItem = {},
             onToggleItem = {},
-            onOpenDetails = {},
+            onOpenMedia = {},
             onClearSelection = {},
             onRemoveSelected = {},
             contentBottomPadding = 96.dp,

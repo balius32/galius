@@ -32,6 +32,16 @@ class MediaRepositoryImpl(
             entities.map { it.toDomain() }
         }
 
+    override fun observeByTagId(tagId: String): Flow<List<MediaItem>> =
+        mediaDao.observeByTagId(tagId).map { entities ->
+            entities.map { it.toDomain() }
+        }
+
+    override fun observeByCategoryId(categoryId: String): Flow<List<MediaItem>> =
+        mediaDao.observeByCategoryId(categoryId).map { entities ->
+            entities.map { it.toDomain() }
+        }
+
     override suspend fun importFromUri(uri: Uri): MediaItem = withContext(Dispatchers.IO) {
         val mimeType = context.contentResolver.getType(uri).orEmpty()
         val displayName = queryDisplayName(uri) ?: "media_${System.currentTimeMillis()}"

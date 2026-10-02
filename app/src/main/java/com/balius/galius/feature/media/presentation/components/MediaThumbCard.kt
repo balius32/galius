@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
@@ -16,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
@@ -32,6 +34,9 @@ import com.balius.galius.ui.theme.GaliusThemeTokens
 import com.balius.galius.ui.theme.MediaCardShape
 import java.io.File
 
+/** Shared cell ratio so photo + video keep even gutters in a 2-column grid. */
+const val MediaGridThumbAspectRatio = 3f / 4f
+
 @Composable
 fun MediaThumbCard(
     item: MediaItem,
@@ -39,13 +44,9 @@ fun MediaThumbCard(
     selected: Boolean = false,
     selectionMode: Boolean = false,
 ) {
-    val aspectRatio = when (item.type) {
-        MediaType.Photo -> 2f / 3f
-        MediaType.Video -> 16f / 9f
-    }
     Box(
         modifier = modifier
-            .aspectRatio(aspectRatio)
+            .aspectRatio(MediaGridThumbAspectRatio)
             .clip(MediaCardShape)
             .background(GaliusThemeTokens.colors.card)
             .then(
@@ -63,20 +64,34 @@ fun MediaThumbCard(
             modifier = Modifier.fillMaxSize(),
         )
         if (item.type == MediaType.Video) {
-            Icon(
-                imageVector = Icons.Outlined.PlayArrow,
-                contentDescription = stringResource(R.string.action_play),
-                tint = Color.White,
+            Box(
                 modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(GaliusSpacing.sm)
-                    .size(28.dp)
+                    .fillMaxSize()
                     .background(
-                        color = Color.Black.copy(alpha = 0.45f),
-                        shape = MediaCardShape,
-                    )
-                    .padding(4.dp),
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                Color.Black.copy(alpha = 0.35f),
+                            ),
+                        ),
+                    ),
             )
+            Box(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(Color.Black.copy(alpha = 0.5f))
+                    .border(1.dp, Color.White.copy(alpha = 0.35f), CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.PlayArrow,
+                    contentDescription = stringResource(R.string.action_play),
+                    tint = Color.White,
+                    modifier = Modifier.size(22.dp),
+                )
+            }
         }
         if (selectionMode) {
             Box(
@@ -119,7 +134,7 @@ private fun MediaThumbCardPreview() {
             ),
             selected = true,
             selectionMode = true,
-            modifier = Modifier.size(width = 160.dp, height = 240.dp),
+            modifier = Modifier.width(160.dp),
         )
     }
 }

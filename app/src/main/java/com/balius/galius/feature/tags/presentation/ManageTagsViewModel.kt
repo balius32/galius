@@ -22,7 +22,6 @@ import kotlinx.coroutines.launch
 
 data class ManageTagsState(
     val categories: List<CategoryWithTags> = emptyList(),
-    val createExpanded: Boolean = true,
     val categoryName: String = "",
     val categoryColor: TagColorKey = TagColorKey.Indigo,
     val addTagCategoryId: String? = null,
@@ -32,7 +31,6 @@ data class ManageTagsState(
 
 sealed interface ManageTagsIntent {
     data class CategoriesUpdated(val categories: List<CategoryWithTags>) : ManageTagsIntent
-    data object ToggleCreateExpanded : ManageTagsIntent
     data class CategoryNameChanged(val name: String) : ManageTagsIntent
     data class CategoryColorChanged(val colorKey: TagColorKey) : ManageTagsIntent
     data object SaveCategory : ManageTagsIntent
@@ -53,9 +51,6 @@ class ManageTagsReducer : Reducer<ManageTagsState, ManageTagsIntent> {
     override fun reduce(state: ManageTagsState, intent: ManageTagsIntent): ManageTagsState =
         when (intent) {
             is ManageTagsIntent.CategoriesUpdated -> state.copy(categories = intent.categories)
-            ManageTagsIntent.ToggleCreateExpanded -> state.copy(
-                createExpanded = !state.createExpanded,
-            )
             is ManageTagsIntent.CategoryNameChanged -> state.copy(categoryName = intent.name)
             is ManageTagsIntent.CategoryColorChanged -> state.copy(categoryColor = intent.colorKey)
             ManageTagsIntent.SaveCategory -> state
@@ -121,7 +116,6 @@ class ManageTagsViewModel(
                     _state.update {
                         reducer.reduce(it, ManageTagsIntent.SaveFinished).copy(
                             categoryName = "",
-                            createExpanded = false,
                         )
                     }
                 }

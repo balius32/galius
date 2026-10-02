@@ -14,11 +14,14 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -40,9 +43,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
@@ -71,6 +76,7 @@ import com.balius.galius.ui.theme.InputShape
 import com.balius.galius.ui.theme.Outline
 import com.balius.galius.ui.theme.PillShape
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -97,7 +103,6 @@ fun ManageTagsRoute(
         ManageTagsScreen(
             state = state,
             onBack = onBack,
-            onToggleCreate = { viewModel.onIntent(ManageTagsIntent.ToggleCreateExpanded) },
             onCategoryNameChange = { viewModel.onIntent(ManageTagsIntent.CategoryNameChanged(it)) },
             onCategoryColorChange = { viewModel.onIntent(ManageTagsIntent.CategoryColorChanged(it)) },
             onSaveCategory = { viewModel.onIntent(ManageTagsIntent.SaveCategory) },
@@ -112,6 +117,7 @@ fun ManageTagsRoute(
             hostState = snackbarHostState,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
+                .imePadding()
                 .padding(bottom = contentBottomPadding + GaliusSpacing.sm),
         )
     }
@@ -121,7 +127,6 @@ fun ManageTagsRoute(
 fun ManageTagsScreen(
     state: ManageTagsState,
     onBack: () -> Unit,
-    onToggleCreate: () -> Unit,
     onCategoryNameChange: (String) -> Unit,
     onCategoryColorChange: (TagColorKey) -> Unit,
     onSaveCategory: () -> Unit,
@@ -140,8 +145,9 @@ fun ManageTagsScreen(
             .fillMaxSize()
             .background(CanvasBase)
             .windowInsetsPadding(WindowInsets.statusBars)
-            .padding(bottom = contentBottomPadding)
+            .imePadding()
             .padding(horizontal = GaliusSpacing.margin)
+            .padding(bottom = contentBottomPadding)
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(GaliusSpacing.md),
     ) {
@@ -164,31 +170,14 @@ fun ManageTagsScreen(
             )
         }
 
-        if (state.createExpanded) {
-            CreateCategoryCard(
-                name = state.categoryName,
-                selectedColor = state.categoryColor,
-                isSaving = state.isSaving,
-                onNameChange = onCategoryNameChange,
-                onColorChange = onCategoryColorChange,
-                onSave = onSaveCategory,
-                onDismiss = onToggleCreate,
-            )
-        } else {
-            Button(
-                onClick = onToggleCreate,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = ElevatedSurface,
-                    contentColor = AccentIndigo,
-                ),
-                shape = RoundedCornerShape(GaliusRadius.lg),
-            ) {
-                Icon(Icons.Outlined.Add, contentDescription = null)
-                Spacer(modifier = Modifier.size(GaliusSpacing.sm))
-                Text(text = stringResource(R.string.create_category))
-            }
-        }
+        CreateCategoryCard(
+            name = state.categoryName,
+            selectedColor = state.categoryColor,
+            isSaving = state.isSaving,
+            onNameChange = onCategoryNameChange,
+            onColorChange = onCategoryColorChange,
+            onSave = onSaveCategory,
+        )
 
         if (state.categories.isEmpty()) {
             Text(
@@ -227,7 +216,6 @@ private fun CreateCategoryCard(
     onNameChange: (String) -> Unit,
     onColorChange: (TagColorKey) -> Unit,
     onSave: () -> Unit,
-    onDismiss: () -> Unit,
 ) {
     val typography = GaliusThemeTokens.typography
     val shape = RoundedCornerShape(GaliusRadius.lg)
@@ -242,46 +230,33 @@ private fun CreateCategoryCard(
         verticalArrangement = Arrangement.spacedBy(GaliusSpacing.md),
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.spacedBy(GaliusSpacing.sm),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(GaliusSpacing.sm),
-                verticalAlignment = Alignment.CenterVertically,
+            Box(
+                modifier = Modifier
+                    .size(28.dp)
+                    .clip(RoundedCornerShape(GaliusRadius.default))
+                    .background(AccentIndigo),
+                contentAlignment = Alignment.Center,
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(28.dp)
-                        .clip(RoundedCornerShape(GaliusRadius.default))
-                        .background(AccentIndigo),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.FolderSpecial,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(18.dp),
-                    )
-                }
-                Column {
-                    Text(
-                        text = stringResource(R.string.create_category),
-                        style = typography.headlineSm,
-                        color = Color.White,
-                    )
-                    Text(
-                        text = stringResource(R.string.manage_create_category_subtitle),
-                        style = typography.bodySm,
-                        color = GaliusThemeTokens.colors.metadataDescription,
-                    )
-                }
-            }
-            IconButton(onClick = onDismiss) {
                 Icon(
-                    imageVector = Icons.Outlined.Close,
-                    contentDescription = stringResource(R.string.action_close),
-                    tint = Outline,
+                    imageVector = Icons.Outlined.FolderSpecial,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+            Column {
+                Text(
+                    text = stringResource(R.string.create_category),
+                    style = typography.headlineSm,
+                    color = Color.White,
+                )
+                Text(
+                    text = stringResource(R.string.manage_create_category_subtitle),
+                    style = typography.bodySm,
+                    color = GaliusThemeTokens.colors.metadataDescription,
                 )
             }
         }
@@ -551,6 +526,9 @@ private fun DraftField(
     modifier: Modifier = Modifier,
 ) {
     val typography = GaliusThemeTokens.typography
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    val scope = rememberCoroutineScope()
+
     BasicTextField(
         value = value,
         onValueChange = onValueChange,
@@ -559,6 +537,14 @@ private fun DraftField(
         cursorBrush = SolidColor(AccentIndigo),
         modifier = modifier
             .fillMaxWidth()
+            .bringIntoViewRequester(bringIntoViewRequester)
+            .onFocusEvent { focusState ->
+                if (focusState.isFocused) {
+                    scope.launch {
+                        bringIntoViewRequester.bringIntoView()
+                    }
+                }
+            }
             .height(48.dp)
             .clip(InputShape)
             .background(ElevatedSurface)
@@ -592,7 +578,6 @@ private fun ManageTagsScreenPreview() {
                 ),
             ),
             onBack = {},
-            onToggleCreate = {},
             onCategoryNameChange = {},
             onCategoryColorChange = {},
             onSaveCategory = {},

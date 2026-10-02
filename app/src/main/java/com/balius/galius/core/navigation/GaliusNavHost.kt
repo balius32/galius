@@ -5,6 +5,9 @@ import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -30,6 +33,7 @@ import com.balius.galius.feature.media.data.local.MediaReadPermission
 import com.balius.galius.feature.media.data.local.MediaStoreDeleteUriResolver
 import com.balius.galius.feature.media.presentation.ImportEffect
 import com.balius.galius.feature.media.presentation.ImportSessionViewModel
+import com.balius.galius.feature.media.presentation.viewer.MediaViewerRoute as MediaViewerScreenRoute
 import com.balius.galius.feature.more.presentation.MoreRoute
 import com.balius.galius.feature.search.presentation.SearchRoute
 import com.balius.galius.feature.tags.presentation.ManageTagsRoute
@@ -165,12 +169,18 @@ fun GaliusNavHost(
                     HomeRoute(
                         onOpenSearch = { navigateToTopLevel(TopLevelRoute.Search) },
                         onImportClick = importSessionViewModel::onImportClick,
+                        onOpenViewer = { mediaId, source ->
+                            backStack.add(MediaViewerRoute(mediaId, source))
+                        },
                         contentBottomPadding = contentBottomPadding,
                     )
                 }
                 entry<TopLevelRoute.Search> {
                     SearchRoute(
                         contentBottomPadding = contentBottomPadding,
+                        onOpenViewer = { mediaId, source ->
+                            backStack.add(MediaViewerRoute(mediaId, source))
+                        },
                     )
                 }
                 entry<TopLevelRoute.More> {
@@ -180,10 +190,39 @@ fun GaliusNavHost(
                         contentBottomPadding = contentBottomPadding,
                     )
                 }
-                entry<ManageTagsRoute> {
+                entry<ManageTagsRoute>(
+                    metadata = NavDisplay.transitionSpec {
+                        slideInHorizontally(initialOffsetX = { it }) togetherWith
+                            slideOutHorizontally(targetOffsetX = { -it })
+                    } + NavDisplay.popTransitionSpec {
+                        slideInHorizontally(initialOffsetX = { -it }) togetherWith
+                            slideOutHorizontally(targetOffsetX = { it })
+                    } + NavDisplay.predictivePopTransitionSpec {
+                        slideInHorizontally(initialOffsetX = { -it }) togetherWith
+                            slideOutHorizontally(targetOffsetX = { it })
+                    },
+                ) {
                     ManageTagsRoute(
                         onBack = { backStack.removeLastOrNull() },
                         contentBottomPadding = contentBottomPadding,
+                    )
+                }
+                entry<MediaViewerRoute>(
+                    metadata = NavDisplay.transitionSpec {
+                        slideInHorizontally(initialOffsetX = { it }) togetherWith
+                            slideOutHorizontally(targetOffsetX = { -it })
+                    } + NavDisplay.popTransitionSpec {
+                        slideInHorizontally(initialOffsetX = { -it }) togetherWith
+                            slideOutHorizontally(targetOffsetX = { it })
+                    } + NavDisplay.predictivePopTransitionSpec {
+                        slideInHorizontally(initialOffsetX = { -it }) togetherWith
+                            slideOutHorizontally(targetOffsetX = { it })
+                    },
+                ) { key ->
+                    MediaViewerScreenRoute(
+                        startMediaId = key.startMediaId,
+                        source = key.source,
+                        onBack = { backStack.removeLastOrNull() },
                     )
                 }
             },

@@ -7,6 +7,10 @@ import kotlinx.coroutines.flow.Flow
 interface MediaRepository {
     fun observeAll(): Flow<List<MediaItem>>
 
+    fun observeByTagId(tagId: String): Flow<List<MediaItem>>
+
+    fun observeByCategoryId(categoryId: String): Flow<List<MediaItem>>
+
     suspend fun importFromUri(uri: Uri): MediaItem
 
     /**

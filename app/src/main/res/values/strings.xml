@@ -54,6 +54,15 @@
     <string name="search_filter_videos_only">Videos only</string>
     <string name="search_filter_photos_only">Photos only</string>
     <string name="search_add_filter">Add filter</string>
+    <string name="search_select_category">Select category</string>
+    <string name="search_select_category_hint">Tap to view tags</string>
+    <string name="search_tags_in_category">Tags in %1$s</string>
+    <string name="search_click_tag_hint">Tap tag to filter</string>
+    <string name="search_files_in_category">Files in %1$s</string>
+    <string name="search_files_with_tag">Files tagged with #%1$s</string>
+    <string name="search_pick_category_body">Choose a category to browse tags and media.</string>
+    <string name="search_no_media_in_filter">No media matches this filter.</string>
+    <string name="search_items_count">%1$d items</string>
 
     <!-- More -->
     <string name="more_title">More</string>
@@ -120,6 +129,15 @@
     <string name="media_restored_to_gallery">Restored to Gallery</string>
     <string name="media_restore_partial">Some items could not be restored</string>
     <string name="media_restore_failed">Could not restore to Gallery</string>
+
+    <!-- Media viewer -->
+    <string name="viewer_close_cd">Close viewer</string>
+    <string name="viewer_info_cd">Media details</string>
+    <string name="viewer_position">%1$d / %2$d</string>
+    <string name="viewer_play_pause_cd">Play or pause</string>
+    <string name="viewer_seek_back_cd">Seek back 10 seconds</string>
+    <string name="viewer_seek_forward_cd">Seek forward 10 seconds</string>
+    <string name="viewer_time_position">%1$s / %2$s</string>
 
     <!-- Errors / states -->
     <string name="error_generic">Something went wrong</string>

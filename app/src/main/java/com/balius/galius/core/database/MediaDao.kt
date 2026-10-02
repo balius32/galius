@@ -11,6 +11,27 @@ interface MediaDao {
     @Query("SELECT * FROM media_items ORDER BY createdAtMillis DESC")
     fun observeAll(): Flow<List<MediaEntity>>
 
+    @Query(
+        """
+        SELECT DISTINCT m.* FROM media_items m
+        INNER JOIN media_tags mt ON mt.mediaId = m.id
+        WHERE mt.tagId = :tagId
+        ORDER BY m.createdAtMillis DESC
+        """,
+    )
+    fun observeByTagId(tagId: String): Flow<List<MediaEntity>>
+
+    @Query(
+        """
+        SELECT DISTINCT m.* FROM media_items m
+        INNER JOIN media_tags mt ON mt.mediaId = m.id
+        INNER JOIN tags t ON t.id = mt.tagId
+        WHERE t.categoryId = :categoryId
+        ORDER BY m.createdAtMillis DESC
+        """,
+    )
+    fun observeByCategoryId(categoryId: String): Flow<List<MediaEntity>>
+
     @Query("SELECT * FROM media_items WHERE id IN (:ids)")
     suspend fun getByIds(ids: List<String>): List<MediaEntity>
 
