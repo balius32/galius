@@ -20,8 +20,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,6 +42,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
@@ -46,6 +50,7 @@ import com.balius.galius.R
 import com.balius.galius.feature.media.domain.model.MediaBrowseSource
 import com.balius.galius.feature.media.domain.model.MediaItem
 import com.balius.galius.feature.media.domain.model.MediaType
+import com.balius.galius.feature.media.presentation.launchMediaShare
 import com.balius.galius.feature.media.presentation.components.MediaDetailsSheet
 import com.balius.galius.feature.media.presentation.components.MediaTagPickerSheet
 import com.balius.galius.ui.theme.GaliusSpacing
@@ -68,19 +73,47 @@ fun MediaViewerRoute(
     },
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    MediaViewerScreen(
-        state = state,
-        onBack = onBack,
-        onPageChanged = { viewModel.onIntent(MediaViewerIntent.PageChanged(it)) },
-        onToggleChrome = { viewModel.onIntent(MediaViewerIntent.ToggleChrome) },
-        onOpenDetails = { viewModel.onIntent(MediaViewerIntent.OpenDetails) },
-        onCloseDetails = { viewModel.onIntent(MediaViewerIntent.CloseDetails) },
-        onOpenTagPicker = { viewModel.onIntent(MediaViewerIntent.OpenTagPicker) },
-        onCloseTagPicker = { viewModel.onIntent(MediaViewerIntent.CloseTagPicker) },
-        onAddTag = { viewModel.onIntent(MediaViewerIntent.AddTag(it)) },
-        onRemoveTag = { viewModel.onIntent(MediaViewerIntent.RemoveTag(it)) },
-        onOpenVideoPlayer = onOpenVideoPlayer,
-    )
+    val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+
+    LaunchedEffect(viewModel) {
+        viewModel.effects.collect { effect ->
+            when (effect) {
+                is MediaViewerEffect.ShowMessage -> {
+                    snackbarHostState.showSnackbar(context.getString(effect.messageRes))
+                }
+                is MediaViewerEffect.LaunchShare -> {
+                    runCatching { context.launchMediaShare(effect.sharePackage) }
+                        .onFailure {
+                            snackbarHostState.showSnackbar(
+                                context.getString(R.string.media_share_failed),
+                            )
+                        }
+                }
+            }
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        MediaViewerScreen(
+            state = state,
+            onBack = onBack,
+            onPageChanged = { viewModel.onIntent(MediaViewerIntent.PageChanged(it)) },
+            onToggleChrome = { viewModel.onIntent(MediaViewerIntent.ToggleChrome) },
+            onShare = { viewModel.onIntent(MediaViewerIntent.Share) },
+            onOpenDetails = { viewModel.onIntent(MediaViewerIntent.OpenDetails) },
+            onCloseDetails = { viewModel.onIntent(MediaViewerIntent.CloseDetails) },
+            onOpenTagPicker = { viewModel.onIntent(MediaViewerIntent.OpenTagPicker) },
+            onCloseTagPicker = { viewModel.onIntent(MediaViewerIntent.CloseTagPicker) },
+            onAddTag = { viewModel.onIntent(MediaViewerIntent.AddTag(it)) },
+            onRemoveTag = { viewModel.onIntent(MediaViewerIntent.RemoveTag(it)) },
+            onOpenVideoPlayer = onOpenVideoPlayer,
+        )
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter),
+        )
+    }
 }
 
 @Composable
@@ -89,6 +122,7 @@ fun MediaViewerScreen(
     onBack: () -> Unit,
     onPageChanged: (Int) -> Unit,
     onToggleChrome: () -> Unit,
+    onShare: () -> Unit,
     onOpenDetails: () -> Unit,
     onCloseDetails: () -> Unit,
     onOpenTagPicker: () -> Unit,
@@ -183,6 +217,7 @@ fun MediaViewerScreen(
                 onOpenVideoPlayer = {
                     current?.takeIf { it.type == MediaType.Video }?.let { onOpenVideoPlayer(it.id) }
                 },
+                onShare = onShare,
                 onOpenDetails = onOpenDetails,
                 modifier = Modifier.align(Alignment.TopCenter),
             )
@@ -216,6 +251,7 @@ private fun ViewerTopChrome(
     showOpenVideoPlayer: Boolean,
     onBack: () -> Unit,
     onOpenVideoPlayer: () -> Unit,
+    onShare: () -> Unit,
     onOpenDetails: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -251,6 +287,13 @@ private fun ViewerTopChrome(
                     tint = Color.White,
                 )
             }
+        }
+        IconButton(onClick = onShare) {
+            Icon(
+                imageVector = Icons.Outlined.Share,
+                contentDescription = stringResource(R.string.viewer_share_cd),
+                tint = Color.White,
+            )
         }
         IconButton(onClick = onOpenDetails) {
             Icon(

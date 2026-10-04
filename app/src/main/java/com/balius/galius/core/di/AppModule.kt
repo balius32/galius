@@ -4,9 +4,11 @@ import androidx.room.Room
 import com.balius.galius.core.database.GaliusDatabase
 import com.balius.galius.feature.home.presentation.HomeReducer
 import com.balius.galius.feature.home.presentation.HomeViewModel
+import com.balius.galius.feature.media.data.local.MediaShareUriFactory
 import com.balius.galius.feature.media.data.local.MediaStoreDeleteUriResolver
 import com.balius.galius.feature.media.data.local.MediaStoreRestorer
 import com.balius.galius.feature.media.data.local.VaultFileStore
+import com.balius.galius.feature.media.domain.repository.MediaShareUriProvider
 import com.balius.galius.feature.media.data.repository.MediaRepositoryImpl
 import com.balius.galius.feature.media.domain.repository.MediaRepository
 import com.balius.galius.feature.media.domain.usecase.ImportMediaUseCase
@@ -14,6 +16,7 @@ import com.balius.galius.feature.media.domain.usecase.ObserveBrowseMediaUseCase
 import com.balius.galius.feature.media.domain.usecase.ObserveLibraryUseCase
 import com.balius.galius.feature.media.domain.usecase.ObserveMediaByCategoryUseCase
 import com.balius.galius.feature.media.domain.usecase.ObserveMediaByTagUseCase
+import com.balius.galius.feature.media.domain.usecase.PrepareMediaShareUseCase
 import com.balius.galius.feature.media.domain.usecase.RestoreAndRemoveMediaUseCase
 import com.balius.galius.feature.media.presentation.ImportSessionViewModel
 import com.balius.galius.feature.media.presentation.player.VideoPlayerReducer
@@ -71,6 +74,7 @@ val appModule = module {
     single { get<GaliusDatabase>().mediaDao() }
     single { get<GaliusDatabase>().taxonomyDao() }
     single { VaultFileStore(androidContext()) }
+    single { MediaShareUriFactory(androidContext(), get()) } bind MediaShareUriProvider::class
     single { MediaStoreDeleteUriResolver(androidContext()) }
     single { MediaStoreRestorer(androidContext()) }
     single {
@@ -87,6 +91,7 @@ val appModule = module {
     factoryOf(::ObserveMediaByTagUseCase)
     factoryOf(::ObserveBrowseMediaUseCase)
     factoryOf(::RestoreAndRemoveMediaUseCase)
+    factoryOf(::PrepareMediaShareUseCase)
     factoryOf(::ObserveCategoriesUseCase)
     factoryOf(::CreateCategoryUseCase)
     factoryOf(::CreateTagUseCase)
@@ -121,6 +126,7 @@ val appModule = module {
             observeMediaTagsUseCase = get(),
             observeCategoriesUseCase = get(),
             setMediaTagUseCase = get(),
+            prepareMediaShareUseCase = get(),
         )
     }
     viewModel { params ->

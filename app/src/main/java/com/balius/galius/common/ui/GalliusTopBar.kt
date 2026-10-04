@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -35,10 +36,12 @@ import com.balius.galius.ui.theme.Primary
 
 @Composable
 fun GalliusTopBar(
+    title: String = stringResource(R.string.app_name),
     modifier: Modifier = Modifier,
     selectionCount: Int = 0,
     isRemoving: Boolean = false,
     onClearSelection: (() -> Unit)? = null,
+    onShareClick: (() -> Unit)? = null,
     onRemoveClick: (() -> Unit)? = null,
 ) {
     if (selectionCount > 0) {
@@ -46,16 +49,18 @@ fun GalliusTopBar(
             selectionCount = selectionCount,
             isRemoving = isRemoving,
             onClearSelection = onClearSelection ?: {},
+            onShareClick = onShareClick ?: {},
             onRemoveClick = onRemoveClick ?: {},
             modifier = modifier,
         )
     } else {
-        BrandTopBar(modifier = modifier)
+        BrandTopBar(title = title, modifier = modifier)
     }
 }
 
 @Composable
 private fun BrandTopBar(
+    title: String,
     modifier: Modifier = Modifier,
 ) {
     val typography = GaliusThemeTokens.typography
@@ -77,7 +82,7 @@ private fun BrandTopBar(
             horizontalArrangement = Arrangement.Start,
         ) {
             Text(
-                text = stringResource(R.string.app_name),
+                text = title,
                 style = typography.headlineLgMobile.copy(
                     color = onSurface,
                     fontWeight = FontWeight.Bold,
@@ -93,6 +98,7 @@ private fun SelectionTopBar(
     selectionCount: Int,
     isRemoving: Boolean,
     onClearSelection: () -> Unit,
+    onShareClick: () -> Unit,
     onRemoveClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -136,12 +142,21 @@ private fun SelectionTopBar(
                 strokeWidth = 2.dp,
             )
         } else {
-            IconButton(onClick = onRemoveClick) {
-                Icon(
-                    imageVector = Icons.Outlined.DeleteOutline,
-                    contentDescription = stringResource(R.string.home_remove_restore_cd),
-                    tint = colors.tagRose,
-                )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onShareClick) {
+                    Icon(
+                        imageVector = Icons.Outlined.Share,
+                        contentDescription = stringResource(R.string.home_share_cd),
+                        tint = onSurface,
+                    )
+                }
+                IconButton(onClick = onRemoveClick) {
+                    Icon(
+                        imageVector = Icons.Outlined.DeleteOutline,
+                        contentDescription = stringResource(R.string.home_remove_restore_cd),
+                        tint = colors.tagRose,
+                    )
+                }
             }
         }
         }
@@ -163,6 +178,7 @@ private fun GalliusTopBarSelectionPreview() {
         GalliusTopBar(
             selectionCount = 2,
             onClearSelection = {},
+            onShareClick = {},
             onRemoveClick = {},
         )
     }

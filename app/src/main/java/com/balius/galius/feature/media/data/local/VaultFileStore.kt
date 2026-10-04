@@ -12,6 +12,21 @@ class VaultFileStore(
     fun absolutePath(relativePath: String): String =
         File(context.noBackupFilesDir, relativePath).absolutePath
 
+    fun vaultMediaRoot(): File = File(context.noBackupFilesDir, MEDIA_DIR_RELATIVE)
+
+    /**
+     * Returns the file only if it exists under the vault media directory.
+     */
+    fun shareableFile(absolutePath: String): File? {
+        val file = File(absolutePath)
+        if (!file.exists()) return null
+        val root = vaultMediaRoot().canonicalFile
+        val canonical = file.canonicalFile
+        val prefix = root.path + File.separator
+        if (!canonical.path.startsWith(prefix)) return null
+        return canonical
+    }
+
     fun delete(relativePath: String): Boolean {
         val file = File(context.noBackupFilesDir, relativePath)
         return !file.exists() || file.delete()

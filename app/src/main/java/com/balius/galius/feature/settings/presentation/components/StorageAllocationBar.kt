@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -45,10 +46,7 @@ fun StorageAllocationBar(
     val videoLabel = StorageSizeFormatter.format(stats.videoBytes)
     val dbLabel = StorageSizeFormatter.format(stats.dbBytes)
 
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(GaliusSpacing.sm),
-    ) {
+    Column(modifier = modifier) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -69,6 +67,7 @@ fun StorageAllocationBar(
                 color = scheme.onSurfaceVariant,
             )
         }
+        Spacer(modifier = Modifier.height(GaliusSpacing.sm))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -108,6 +107,7 @@ fun StorageAllocationBar(
                 Box(modifier = Modifier.weight(1f).fillMaxHeight())
             }
         }
+        Spacer(modifier = Modifier.height(GaliusSpacing.md))
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,

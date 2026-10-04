@@ -7,7 +7,9 @@ import com.balius.galius.R
 import com.balius.galius.core.mvi.Reducer
 import com.balius.galius.feature.media.domain.model.MediaItem
 import com.balius.galius.feature.media.domain.model.MediaType
+import com.balius.galius.feature.media.domain.model.MediaSharePackage
 import com.balius.galius.feature.media.domain.usecase.ObserveLibraryUseCase
+import com.balius.galius.feature.media.domain.usecase.PrepareMediaShareUseCase
 import com.balius.galius.feature.media.domain.usecase.RestoreAndRemoveMediaUseCase
 import com.balius.galius.feature.tags.domain.model.CategoryWithTags
 import com.balius.galius.feature.tags.domain.model.Tag
@@ -38,6 +40,7 @@ data class HomeState(
     val detailsAssignedTags: List<Tag> = emptyList(),
     val allCategories: List<CategoryWithTags> = emptyList(),
     val showTagPicker: Boolean = false,
+    val gridLayout: HomeGridLayout = HomeGridLayout.Comfortable,
 ) {
     val visibleItems: List<MediaItem>
         get() = if (videosOnly) items.filter { it.type == MediaType.Video } else items
@@ -55,6 +58,7 @@ data class HomeState(
 sealed interface HomeIntent {
     data object Refresh : HomeIntent
     data object ToggleVideosOnly : HomeIntent
+    data class SetGridLayout(val layout: HomeGridLayout) : HomeIntent
     data class LibraryUpdated(val items: List<MediaItem>) : HomeIntent
     data class LoadError(val message: String? = null) : HomeIntent
     data class LongPressItem(val id: String) : HomeIntent
@@ -62,6 +66,7 @@ sealed interface HomeIntent {
     data class OpenDetails(val id: String) : HomeIntent
     data object CloseDetails : HomeIntent
     data object ClearSelection : HomeIntent
+    data object ShareSelected : HomeIntent
     data object RemoveSelected : HomeIntent
     data object RemoveFinished : HomeIntent
     data class DetailsTagsUpdated(val tags: List<Tag>) : HomeIntent
@@ -74,12 +79,14 @@ sealed interface HomeIntent {
 
 sealed interface HomeEffect {
     data class ShowMessage(@StringRes val messageRes: Int) : HomeEffect
+    data class LaunchShare(val sharePackage: MediaSharePackage) : HomeEffect
 }
 
 class HomeReducer : Reducer<HomeState, HomeIntent> {
     override fun reduce(state: HomeState, intent: HomeIntent): HomeState = when (intent) {
         HomeIntent.Refresh -> state.copy(isLoading = true)
         HomeIntent.ToggleVideosOnly -> state.copy(videosOnly = !state.videosOnly)
+        is HomeIntent.SetGridLayout -> state.copy(gridLayout = intent.layout)
         is HomeIntent.LibraryUpdated -> {
             val visibleIds = intent.items.map { it.id }.toSet()
             val selected = state.selectedIds.intersect(visibleIds)
@@ -128,6 +135,7 @@ class HomeReducer : Reducer<HomeState, HomeIntent> {
             selectionMode = false,
             selectedIds = emptySet(),
         )
+        HomeIntent.ShareSelected -> state
         HomeIntent.RemoveSelected -> state.copy(isRemoving = true)
         HomeIntent.RemoveFinished -> state.copy(
             isRemoving = false,
@@ -147,6 +155,7 @@ class HomeViewModel(
     private val reducer: HomeReducer,
     private val observeLibraryUseCase: ObserveLibraryUseCase,
     private val restoreAndRemoveMediaUseCase: RestoreAndRemoveMediaUseCase,
+    private val prepareMediaShareUseCase: PrepareMediaShareUseCase,
     private val observeMediaTagsUseCase: ObserveMediaTagsUseCase,
     private val observeCategoriesUseCase: ObserveCategoriesUseCase,
     private val setMediaTagUseCase: SetMediaTagUseCase,
@@ -185,6 +194,18 @@ class HomeViewModel(
 
     fun onIntent(intent: HomeIntent) {
         when (intent) {
+            HomeIntent.ShareSelected -> {
+                val current = _state.value
+                val selected = current.visibleItems.filter { it.id in current.selectedIds }
+                viewModelScope.launch {
+                    val sharePackage = prepareMediaShareUseCase(selected)
+                    if (sharePackage == null) {
+                        _effects.emit(HomeEffect.ShowMessage(R.string.media_share_failed))
+                    } else {
+                        _effects.emit(HomeEffect.LaunchShare(sharePackage))
+                    }
+                }
+            }
             HomeIntent.RemoveSelected -> {
                 val ids = _state.value.selectedIds.toList()
                 if (ids.isEmpty()) return

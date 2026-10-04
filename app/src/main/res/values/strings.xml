@@ -33,6 +33,7 @@
     <string name="action_delete">Delete</string>
     <string name="action_confirm">Confirm</string>
     <string name="action_retry">Retry</string>
+    <string name="action_share">Share</string>
 
     <!-- Home -->
     <string name="home_highlight_of_week">Highlight of the Week</string>
@@ -46,7 +47,14 @@
     <string name="home_fab_import_cd">Add media to vault</string>
     <string name="home_selection_count">%1$d selected</string>
     <string name="home_remove_restore_cd">Remove from vault and restore to Gallery</string>
+    <string name="home_share_cd">Share selected</string>
     <string name="home_item_selected_cd">Selected</string>
+    <string name="home_layout_comfortable_cd">Comfortable grid</string>
+    <string name="home_layout_compact_cd">Compact grid</string>
+    <plurals name="home_items_count">
+        <item quantity="one">%1$d item</item>
+        <item quantity="other">%1$d items</item>
+    </plurals>
 
     <!-- Search -->
     <string name="search_hint">Search titles, tags, categories</string>
@@ -160,6 +168,7 @@
     <string name="media_restored_to_gallery">Restored to Gallery</string>
     <string name="media_restore_partial">Some items could not be restored</string>
     <string name="media_restore_failed">Could not restore to Gallery</string>
+    <string name="media_share_failed">Could not share media</string>
 
     <!-- Media viewer -->
     <string name="viewer_close_cd">Close viewer</string>
@@ -170,6 +179,7 @@
     <string name="viewer_seek_forward_cd">Seek forward 10 seconds</string>
     <string name="viewer_time_position">%1$s / %2$s</string>
     <string name="viewer_open_video_player_cd">Open video in player</string>
+    <string name="viewer_share_cd">Share media</string>
 
     <!-- Video player -->
     <string name="player_close_cd">Close video player</string>

@@ -11,16 +11,12 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -61,6 +57,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.balius.galius.R
+import com.balius.galius.common.ui.GalliusTopBar
 import com.balius.galius.common.ui.TagChip
 import com.balius.galius.common.ui.tagChipColors
 import com.balius.galius.feature.media.domain.model.MediaBrowseSource
@@ -212,25 +209,22 @@ private fun SearchBrowseContent(
     val selectedCategory = state.selectedCategory
     val fabClearance = if (selectedCategory != null) 88.dp else 0.dp
 
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
-        modifier = Modifier
-            .fillMaxSize()
-            .windowInsetsPadding(WindowInsets.statusBars)
-            .padding(horizontal = GaliusSpacing.margin),
-        contentPadding = PaddingValues(bottom = contentBottomPadding + GaliusSpacing.lg + fabClearance),
-        horizontalArrangement = Arrangement.spacedBy(GaliusSpacing.gutter),
-        verticalArrangement = Arrangement.spacedBy(GaliusSpacing.gutter),
-    ) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        GalliusTopBar(title = stringResource(R.string.nav_search))
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = GaliusSpacing.margin),
+            contentPadding = PaddingValues(
+                top = GaliusSpacing.sm,
+                bottom = contentBottomPadding + GaliusSpacing.lg + fabClearance,
+            ),
+            horizontalArrangement = Arrangement.spacedBy(GaliusSpacing.gutter),
+            verticalArrangement = Arrangement.spacedBy(GaliusSpacing.gutter),
+        ) {
         item(span = { GridItemSpan(maxLineSpan) }) {
             Column(verticalArrangement = Arrangement.spacedBy(GaliusSpacing.md)) {
-                Spacer(modifier = Modifier.height(GaliusSpacing.sm))
-                Text(
-                    text = stringResource(R.string.nav_search),
-                    style = typography.headlineLgMobile,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-
                 SectionHeader(
                     title = stringResource(R.string.search_select_category),
                     hint = stringResource(R.string.search_select_category_hint),
@@ -326,6 +320,7 @@ private fun SearchBrowseContent(
                     .fillMaxWidth()
                     .clickable { onOpenMedia(item.id) },
             )
+        }
         }
     }
 }

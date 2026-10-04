@@ -7,14 +7,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -39,6 +36,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -46,6 +44,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.balius.galius.R
 import com.balius.galius.common.model.AccentOption
+import com.balius.galius.common.ui.GalliusTopBar
 import com.balius.galius.common.model.ThemeMode
 import com.balius.galius.feature.settings.domain.AppLockAuthResult
 import com.balius.galius.feature.settings.domain.AppLockAuthenticator
@@ -150,24 +149,27 @@ fun SettingsScreen(
     val typography = GaliusThemeTokens.typography
     val colors = GaliusThemeTokens.colors
     val scheme = MaterialTheme.colorScheme
+    val context = LocalContext.current
+    val versionName = remember(context) {
+        runCatching {
+            context.packageManager.getPackageInfo(context.packageName, 0).versionName
+        }.getOrNull() ?: ""
+    }
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(colors.canvas)
-            .windowInsetsPadding(WindowInsets.statusBars)
-            .verticalScroll(rememberScrollState())
-            .padding(bottom = contentBottomPadding)
-            .padding(horizontal = GaliusSpacing.margin),
-        verticalArrangement = Arrangement.spacedBy(GaliusSpacing.lg),
+            .background(colors.canvas),
     ) {
-        Spacer(modifier = Modifier.height(GaliusSpacing.sm))
-        Text(
-            text = stringResource(R.string.settings_title),
-            style = typography.headlineLgMobile,
-            color = scheme.onSurface,
-        )
-
+        GalliusTopBar(title = stringResource(R.string.settings_title))
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .padding(bottom = contentBottomPadding)
+                .padding(horizontal = GaliusSpacing.margin),
+            verticalArrangement = Arrangement.spacedBy(GaliusSpacing.lg),
+        ) {
         SettingsSection(
             icon = {
                 Icon(
@@ -245,7 +247,7 @@ fun SettingsScreen(
         ) {
             SettingsCard {
                 StorageAllocationBar(stats = state.storage)
-                Spacer(modifier = Modifier.height(GaliusSpacing.md))
+                Spacer(modifier = Modifier.height(GaliusSpacing.lg))
                 SettingsNavRow(
                     title = stringResource(R.string.settings_manage_tags),
                     onClick = onManageTagsClick,
@@ -253,19 +255,16 @@ fun SettingsScreen(
             }
         }
 
-        Column(verticalArrangement = Arrangement.spacedBy(GaliusSpacing.xs)) {
-            Text(
-                text = stringResource(R.string.settings_about),
-                style = typography.labelPill,
-                color = scheme.onSurfaceVariant,
-            )
-            Text(
-                text = stringResource(R.string.settings_version, "1.0"),
-                style = typography.bodySm,
-                color = colors.metadataCaption,
-            )
+        Text(
+            text = stringResource(R.string.settings_version, versionName),
+            style = typography.bodySm,
+            color = colors.metadataCaption,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = GaliusSpacing.lg),
+        )
         }
-        Spacer(modifier = Modifier.height(GaliusSpacing.lg))
     }
 }
 

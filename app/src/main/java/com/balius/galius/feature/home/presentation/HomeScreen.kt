@@ -26,8 +26,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Apps
+import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.Videocam
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.IconToggleButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SnackbarHost
@@ -42,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -53,6 +58,7 @@ import com.balius.galius.common.ui.GalliusTopBar
 import com.balius.galius.feature.media.domain.model.MediaBrowseSource
 import com.balius.galius.feature.media.domain.model.MediaItem
 import com.balius.galius.feature.media.domain.model.MediaType
+import com.balius.galius.feature.media.presentation.launchMediaShare
 import com.balius.galius.feature.media.presentation.components.MediaDetailsSheet
 import com.balius.galius.feature.media.presentation.components.MediaTagPickerSheet
 import com.balius.galius.feature.media.presentation.components.MediaThumbCard
@@ -84,6 +90,14 @@ fun HomeRoute(
                 is HomeEffect.ShowMessage -> {
                     snackbarHostState.showSnackbar(context.getString(effect.messageRes))
                 }
+                is HomeEffect.LaunchShare -> {
+                    runCatching { context.launchMediaShare(effect.sharePackage) }
+                        .onFailure {
+                            snackbarHostState.showSnackbar(
+                                context.getString(R.string.media_share_failed),
+                            )
+                        }
+                }
             }
         }
     }
@@ -97,6 +111,7 @@ fun HomeRoute(
             state = state,
             onImportClick = onImportClick,
             onToggleVideosOnly = { viewModel.onIntent(HomeIntent.ToggleVideosOnly) },
+            onSetGridLayout = { viewModel.onIntent(HomeIntent.SetGridLayout(it)) },
             onLongPressItem = { viewModel.onIntent(HomeIntent.LongPressItem(it)) },
             onToggleItem = { viewModel.onIntent(HomeIntent.ToggleItemSelection(it)) },
             onOpenMedia = { mediaId ->
@@ -108,6 +123,7 @@ fun HomeRoute(
                 onOpenViewer(mediaId, source)
             },
             onClearSelection = { viewModel.onIntent(HomeIntent.ClearSelection) },
+            onShareSelected = { viewModel.onIntent(HomeIntent.ShareSelected) },
             onRemoveSelected = { viewModel.onIntent(HomeIntent.RemoveSelected) },
             contentBottomPadding = contentBottomPadding,
         )
@@ -148,10 +164,12 @@ fun HomeScreen(
     state: HomeState,
     onImportClick: () -> Unit,
     onToggleVideosOnly: () -> Unit,
+    onSetGridLayout: (HomeGridLayout) -> Unit,
     onLongPressItem: (String) -> Unit,
     onToggleItem: (String) -> Unit,
     onOpenMedia: (String) -> Unit,
     onClearSelection: () -> Unit,
+    onShareSelected: () -> Unit,
     onRemoveSelected: () -> Unit,
     contentBottomPadding: Dp,
     modifier: Modifier = Modifier,
@@ -170,10 +188,11 @@ fun HomeScreen(
                 selectionCount = state.selectedCount,
                 isRemoving = state.isRemoving,
                 onClearSelection = onClearSelection,
+                onShareClick = onShareSelected,
                 onRemoveClick = onRemoveSelected,
             )
             LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
+                columns = GridCells.Fixed(state.gridLayout.columnCount),
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
                     start = GaliusSpacing.margin,
@@ -219,11 +238,13 @@ fun HomeScreen(
 
                     else -> {
                         item(span = { GridItemSpan(maxLineSpan) }) {
-                            Text(
-                                text = stringResource(R.string.home_section_recent_hits),
-                                style = typography.headlineSm,
-                                color = colors.metadataDescription,
-                                modifier = Modifier.padding(bottom = GaliusSpacing.xs),
+                            HomeLibraryToolbar(
+                                itemCount = state.visibleItems.size,
+                                selected = state.gridLayout,
+                                onSelect = onSetGridLayout,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = GaliusSpacing.xs),
                             )
                         }
                         items(
@@ -269,6 +290,63 @@ fun HomeScreen(
                     contentDescription = stringResource(R.string.home_fab_import_cd),
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun HomeLibraryToolbar(
+    itemCount: Int,
+    selected: HomeGridLayout,
+    onSelect: (HomeGridLayout) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val typography = GaliusThemeTokens.typography
+    val scheme = MaterialTheme.colorScheme
+    val colors = GaliusThemeTokens.colors
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = pluralStringResource(
+                R.plurals.home_items_count,
+                itemCount,
+                itemCount,
+            ),
+            style = typography.headlineSm,
+            color = colors.metadataDescription,
+        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+        IconToggleButton(
+            checked = selected == HomeGridLayout.Comfortable,
+            onCheckedChange = { if (it) onSelect(HomeGridLayout.Comfortable) },
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.GridView,
+                contentDescription = stringResource(R.string.home_layout_comfortable_cd),
+                tint = if (selected == HomeGridLayout.Comfortable) {
+                    scheme.primary
+                } else {
+                    colors.metadataDescription
+                },
+            )
+        }
+        IconToggleButton(
+            checked = selected == HomeGridLayout.Compact,
+            onCheckedChange = { if (it) onSelect(HomeGridLayout.Compact) },
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Apps,
+                contentDescription = stringResource(R.string.home_layout_compact_cd),
+                tint = if (selected == HomeGridLayout.Compact) {
+                    scheme.primary
+                } else {
+                    colors.metadataDescription
+                },
+            )
+        }
         }
     }
 }
@@ -409,10 +487,12 @@ private fun HomeScreenEmptyPreview() {
             state = HomeState(isLoading = false, items = emptyList()),
             onImportClick = {},
             onToggleVideosOnly = {},
+            onSetGridLayout = {},
             onLongPressItem = {},
             onToggleItem = {},
             onOpenMedia = {},
             onClearSelection = {},
+            onShareSelected = {},
             onRemoveSelected = {},
             contentBottomPadding = 96.dp,
         )
@@ -449,10 +529,12 @@ private fun HomeScreenFilledPreview() {
             ),
             onImportClick = {},
             onToggleVideosOnly = {},
+            onSetGridLayout = {},
             onLongPressItem = {},
             onToggleItem = {},
             onOpenMedia = {},
             onClearSelection = {},
+            onShareSelected = {},
             onRemoveSelected = {},
             contentBottomPadding = 96.dp,
         )
