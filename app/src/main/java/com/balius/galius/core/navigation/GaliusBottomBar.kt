@@ -24,7 +24,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -69,7 +68,6 @@ fun GaliusBottomBar(
                     destination = destination,
                     selected = selected,
                     onClick = { onNavigate(destination.route) },
-                    selectedContentColor = colors.accentCyan,
                     modifier = Modifier.weight(1f),
                 )
             }
@@ -82,7 +80,6 @@ private fun BottomBarItem(
     destination: TopLevelDestination,
     selected: Boolean,
     onClick: () -> Unit,
-    selectedContentColor: Color,
     modifier: Modifier = Modifier,
 ) {
     val typography = GaliusThemeTokens.typography
@@ -116,7 +113,7 @@ private fun BottomBarItem(
         Icon(
             imageVector = if (selected) destination.selectedIcon else destination.unselectedIcon,
             contentDescription = contentDescription,
-            tint = if (selected) selectedContentColor else unselected,
+            tint = if (selected) scheme.primary else unselected,
             modifier = Modifier.size(20.dp),
         )
         Text(
@@ -130,7 +127,7 @@ private fun BottomBarItem(
                     .padding(top = 2.dp)
                     .size(4.dp)
                     .clip(CircleShape)
-                    .background(colors.accentCyan),
+                    .background(scheme.primary),
             )
         }
     }

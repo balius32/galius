@@ -64,16 +64,11 @@ import com.balius.galius.feature.tags.domain.model.Category
 import com.balius.galius.feature.tags.domain.model.CategoryWithTags
 import com.balius.galius.feature.tags.domain.model.Tag
 import com.balius.galius.feature.tags.domain.model.TagColorKey
-import com.balius.galius.ui.theme.AccentIndigo
-import com.balius.galius.ui.theme.CardSurface
-import com.balius.galius.ui.theme.ElevatedSurface
 import com.balius.galius.ui.theme.GaliusRadius
 import com.balius.galius.ui.theme.GaliusSpacing
 import com.balius.galius.ui.theme.GaliusTheme
 import com.balius.galius.ui.theme.GaliusThemeTokens
-import com.balius.galius.ui.theme.GhostBorder
 import com.balius.galius.ui.theme.InputShape
-import com.balius.galius.ui.theme.Outline
 import com.balius.galius.ui.theme.PillShape
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -139,11 +134,13 @@ fun ManageTagsScreen(
     modifier: Modifier = Modifier,
 ) {
     val typography = GaliusThemeTokens.typography
+    val colors = GaliusThemeTokens.colors
+    val scheme = MaterialTheme.colorScheme
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(GaliusThemeTokens.colors.canvas)
+            .background(colors.canvas)
             .windowInsetsPadding(WindowInsets.statusBars)
             .imePadding()
             .padding(horizontal = GaliusSpacing.margin)
@@ -160,13 +157,13 @@ fun ManageTagsScreen(
                 Icon(
                     imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
                     contentDescription = stringResource(R.string.action_close),
-                    tint = MaterialTheme.colorScheme.onSurface,
+                    tint = scheme.onSurface,
                 )
             }
             Text(
                 text = stringResource(R.string.tags_label),
                 style = typography.headlineLgMobile,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = scheme.onSurface,
             )
         }
 
@@ -183,7 +180,7 @@ fun ManageTagsScreen(
             Text(
                 text = stringResource(R.string.categories_empty),
                 style = typography.bodyMd,
-                color = GaliusThemeTokens.colors.metadataDescription,
+                color = colors.metadataDescription,
             )
         } else {
             state.categories.forEach { item ->
@@ -218,14 +215,16 @@ private fun CreateCategoryCard(
     onSave: () -> Unit,
 ) {
     val typography = GaliusThemeTokens.typography
+    val colors = GaliusThemeTokens.colors
+    val scheme = MaterialTheme.colorScheme
     val shape = RoundedCornerShape(GaliusRadius.lg)
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(shape)
-            .background(CardSurface)
-            .border(1.dp, GhostBorder, shape)
+            .background(colors.card)
+            .border(1.dp, colors.ghostBorder, shape)
             .padding(GaliusSpacing.md),
         verticalArrangement = Arrangement.spacedBy(GaliusSpacing.md),
     ) {
@@ -237,13 +236,13 @@ private fun CreateCategoryCard(
                 modifier = Modifier
                     .size(28.dp)
                     .clip(RoundedCornerShape(GaliusRadius.default))
-                    .background(AccentIndigo),
+                    .background(colors.accentIndigo),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = Icons.Outlined.FolderSpecial,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface,
+                    tint = scheme.onPrimaryContainer,
                     modifier = Modifier.size(18.dp),
                 )
             }
@@ -251,12 +250,12 @@ private fun CreateCategoryCard(
                 Text(
                     text = stringResource(R.string.create_category),
                     style = typography.headlineSm,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = scheme.onSurface,
                 )
                 Text(
                     text = stringResource(R.string.manage_create_category_subtitle),
                     style = typography.bodySm,
-                    color = GaliusThemeTokens.colors.metadataDescription,
+                    color = colors.metadataDescription,
                 )
             }
         }
@@ -264,7 +263,7 @@ private fun CreateCategoryCard(
         Text(
             text = stringResource(R.string.manage_category_title_label),
             style = typography.labelPill,
-            color = GaliusThemeTokens.colors.metadataCaption,
+            color = colors.metadataCaption,
         )
         DraftField(
             value = name,
@@ -275,7 +274,7 @@ private fun CreateCategoryCard(
         Text(
             text = stringResource(R.string.manage_accent_label),
             style = typography.labelPill,
-            color = GaliusThemeTokens.colors.metadataCaption,
+            color = colors.metadataCaption,
         )
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -295,8 +294,8 @@ private fun CreateCategoryCard(
             enabled = !isSaving,
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(
-                containerColor = AccentIndigo,
-                contentColor = MaterialTheme.colorScheme.onSurface,
+                containerColor = colors.accentIndigo,
+                contentColor = scheme.onPrimaryContainer,
             ),
             shape = RoundedCornerShape(GaliusRadius.md),
         ) {
@@ -319,6 +318,8 @@ private fun CategoryManageCard(
     onDeleteTag: (String) -> Unit,
 ) {
     val typography = GaliusThemeTokens.typography
+    val colors = GaliusThemeTokens.colors
+    val scheme = MaterialTheme.colorScheme
     val accent = tagChipColors(item.category.colorKey)
     val shape = RoundedCornerShape(GaliusRadius.lg)
 
@@ -326,8 +327,8 @@ private fun CategoryManageCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(shape)
-            .background(CardSurface)
-            .border(1.dp, GhostBorder, shape)
+            .background(colors.card)
+            .border(1.dp, colors.ghostBorder, shape)
             .padding(GaliusSpacing.md),
         verticalArrangement = Arrangement.spacedBy(GaliusSpacing.sm),
     ) {
@@ -357,7 +358,7 @@ private fun CategoryManageCard(
                     Text(
                         text = item.category.name,
                         style = typography.headlineSm,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = scheme.onSurface,
                     )
                     Box(
                         modifier = Modifier
@@ -373,7 +374,7 @@ private fun CategoryManageCard(
                         item.tags.size,
                     ),
                     style = typography.bodySm,
-                    color = GaliusThemeTokens.colors.metadataCaption,
+                    color = colors.metadataCaption,
                 )
             }
         }
@@ -393,7 +394,8 @@ private fun CategoryManageCard(
                 modifier = Modifier
                     .height(GaliusSpacing.tagPillHeight)
                     .clip(PillShape)
-                    .background(ElevatedSurface)
+                    .background(colors.elevated)
+                    .border(1.dp, colors.ghostBorder, PillShape)
                     .clickable(onClick = onAddTag)
                     .padding(horizontal = GaliusSpacing.sm + 2.dp),
                 contentAlignment = Alignment.Center,
@@ -411,7 +413,7 @@ private fun CategoryManageCard(
                     Text(
                         text = stringResource(R.string.manage_add_tag),
                         style = typography.labelPill,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = scheme.onSurface,
                     )
                 }
             }
@@ -433,14 +435,14 @@ private fun CategoryManageCard(
                     Icon(
                         imageVector = Icons.Outlined.Check,
                         contentDescription = stringResource(R.string.action_save),
-                        tint = AccentIndigo,
+                        tint = colors.accentIndigo,
                     )
                 }
                 IconButton(onClick = onDismissAddTag) {
                     Icon(
                         imageVector = Icons.Outlined.Close,
                         contentDescription = stringResource(R.string.action_cancel),
-                        tint = Outline,
+                        tint = scheme.outline,
                     )
                 }
             }
@@ -455,6 +457,7 @@ private fun ManageTagChip(
     onRemove: () -> Unit,
 ) {
     val accent = tagChipColors(colorKey)
+    val outline = MaterialTheme.colorScheme.outline
     Row(
         modifier = Modifier
             .height(GaliusSpacing.tagPillHeight)
@@ -480,7 +483,7 @@ private fun ManageTagChip(
             Icon(
                 imageVector = Icons.Outlined.Close,
                 contentDescription = stringResource(R.string.action_delete),
-                tint = Outline,
+                tint = outline,
                 modifier = Modifier.size(12.dp),
             )
         }
@@ -494,6 +497,7 @@ private fun AccentSwatch(
     onClick: () -> Unit,
 ) {
     val accent = tagChipColors(colorKey)
+    val scheme = MaterialTheme.colorScheme
     Box(
         modifier = Modifier
             .size(40.dp)
@@ -501,7 +505,7 @@ private fun AccentSwatch(
             .background(accent.content)
             .border(
                 width = if (selected) 2.dp else 0.dp,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = scheme.onSurface,
                 shape = CircleShape,
             )
             .clickable(onClick = onClick),
@@ -511,7 +515,7 @@ private fun AccentSwatch(
             Icon(
                 imageVector = Icons.Outlined.Check,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurface,
+                tint = Color.White,
                 modifier = Modifier.size(18.dp),
             )
         }
@@ -526,6 +530,8 @@ private fun DraftField(
     modifier: Modifier = Modifier,
 ) {
     val typography = GaliusThemeTokens.typography
+    val colors = GaliusThemeTokens.colors
+    val scheme = MaterialTheme.colorScheme
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val scope = rememberCoroutineScope()
 
@@ -533,8 +539,8 @@ private fun DraftField(
         value = value,
         onValueChange = onValueChange,
         singleLine = true,
-        textStyle = typography.bodyMd.copy(color = MaterialTheme.colorScheme.onSurface),
-        cursorBrush = SolidColor(AccentIndigo),
+        textStyle = typography.bodyMd.copy(color = scheme.onSurface),
+        cursorBrush = SolidColor(colors.accentIndigo),
         modifier = modifier
             .fillMaxWidth()
             .bringIntoViewRequester(bringIntoViewRequester)
@@ -547,13 +553,13 @@ private fun DraftField(
             }
             .height(48.dp)
             .clip(InputShape)
-            .background(ElevatedSurface)
-            .border(1.dp, GhostBorder, InputShape)
+            .background(colors.elevated)
+            .border(1.dp, colors.ghostBorder, InputShape)
             .padding(horizontal = GaliusSpacing.md, vertical = GaliusSpacing.sm),
         decorationBox = { inner ->
             Box(contentAlignment = Alignment.CenterStart) {
                 if (value.isEmpty()) {
-                    Text(text = hint, style = typography.bodyMd, color = Outline)
+                    Text(text = hint, style = typography.bodyMd, color = scheme.outline)
                 }
                 inner()
             }
@@ -563,30 +569,43 @@ private fun DraftField(
 
 @Preview(showBackground = true, backgroundColor = 0xFF0F1115, heightDp = 900)
 @Composable
-private fun ManageTagsScreenPreview() {
-    GaliusTheme {
-        ManageTagsScreen(
-            state = ManageTagsState(
-                categories = listOf(
-                    CategoryWithTags(
-                        category = Category("1", "People", TagColorKey.Indigo, 0L),
-                        tags = listOf(
-                            Tag("t1", "1", "Family", TagColorKey.Indigo, 0L),
-                            Tag("t2", "1", "Team", TagColorKey.Indigo, 0L),
-                        ),
+private fun ManageTagsScreenPreviewDark() {
+    GaliusTheme(darkTheme = true) {
+        ManageTagsScreenPreviewContent()
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF2F2F6, heightDp = 900)
+@Composable
+private fun ManageTagsScreenPreviewLight() {
+    GaliusTheme(darkTheme = false) {
+        ManageTagsScreenPreviewContent()
+    }
+}
+
+@Composable
+private fun ManageTagsScreenPreviewContent() {
+    ManageTagsScreen(
+        state = ManageTagsState(
+            categories = listOf(
+                CategoryWithTags(
+                    category = Category("1", "People", TagColorKey.Indigo, 0L),
+                    tags = listOf(
+                        Tag("t1", "1", "Family", TagColorKey.Indigo, 0L),
+                        Tag("t2", "1", "Team", TagColorKey.Indigo, 0L),
                     ),
                 ),
             ),
-            onBack = {},
-            onCategoryNameChange = {},
-            onCategoryColorChange = {},
-            onSaveCategory = {},
-            onOpenAddTag = {},
-            onDismissAddTag = {},
-            onTagDraftChange = {},
-            onSaveTag = {},
-            onDeleteTag = {},
-            contentBottomPadding = 96.dp,
-        )
-    }
+        ),
+        onBack = {},
+        onCategoryNameChange = {},
+        onCategoryColorChange = {},
+        onSaveCategory = {},
+        onOpenAddTag = {},
+        onDismissAddTag = {},
+        onTagDraftChange = {},
+        onSaveTag = {},
+        onDeleteTag = {},
+        contentBottomPadding = 96.dp,
+    )
 }

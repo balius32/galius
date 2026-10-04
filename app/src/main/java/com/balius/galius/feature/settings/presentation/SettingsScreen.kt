@@ -64,7 +64,6 @@ import org.koin.core.context.GlobalContext
 
 @Composable
 fun SettingsRoute(
-    onImportClick: () -> Unit,
     onManageTagsClick: () -> Unit,
     contentBottomPadding: Dp,
     viewModel: SettingsViewModel = koinViewModel(),
@@ -118,7 +117,6 @@ fun SettingsRoute(
                     }
                 }
             },
-            onImportClick = onImportClick,
             onManageTagsClick = onManageTagsClick,
             contentBottomPadding = contentBottomPadding,
         )
@@ -145,7 +143,6 @@ fun SettingsScreen(
     onThemeModeSelected: (ThemeMode) -> Unit,
     onAccentSelected: (AccentOption) -> Unit,
     onToggleAppLock: (Boolean) -> Unit,
-    onImportClick: () -> Unit,
     onManageTagsClick: () -> Unit,
     contentBottomPadding: Dp,
     modifier: Modifier = Modifier,
@@ -176,7 +173,7 @@ fun SettingsScreen(
                 Icon(
                     imageVector = Icons.Outlined.Palette,
                     contentDescription = null,
-                    tint = scheme.tertiary,
+                    tint = scheme.onSurfaceVariant,
                     modifier = Modifier.size(18.dp),
                 )
             },
@@ -200,7 +197,7 @@ fun SettingsScreen(
                 Icon(
                     imageVector = Icons.Outlined.Fingerprint,
                     contentDescription = null,
-                    tint = colors.accentCyan,
+                    tint = scheme.onSurfaceVariant,
                     modifier = Modifier.size(18.dp),
                 )
             },
@@ -209,7 +206,7 @@ fun SettingsScreen(
                 Text(
                     text = stringResource(R.string.settings_zero_cloud),
                     style = typography.labelPill,
-                    color = colors.accentCyan,
+                    color = scheme.onSurfaceVariant,
                     modifier = Modifier
                         .clip(PillShape)
                         .background(scheme.surfaceBright)
@@ -230,7 +227,7 @@ fun SettingsScreen(
                 Icon(
                     imageVector = Icons.Outlined.Storage,
                     contentDescription = null,
-                    tint = scheme.primary,
+                    tint = scheme.onSurfaceVariant,
                     modifier = Modifier.size(18.dp),
                 )
             },
@@ -252,10 +249,6 @@ fun SettingsScreen(
                 SettingsNavRow(
                     title = stringResource(R.string.settings_manage_tags),
                     onClick = onManageTagsClick,
-                )
-                SettingsNavRow(
-                    title = stringResource(R.string.action_import),
-                    onClick = onImportClick,
                 )
             }
         }
@@ -404,7 +397,6 @@ private fun SettingsScreenDarkPreview() {
             onThemeModeSelected = {},
             onAccentSelected = {},
             onToggleAppLock = {},
-            onImportClick = {},
             onManageTagsClick = {},
             contentBottomPadding = 96.dp,
         )
@@ -430,7 +422,6 @@ private fun SettingsScreenLightPreview() {
             onThemeModeSelected = {},
             onAccentSelected = {},
             onToggleAppLock = {},
-            onImportClick = {},
             onManageTagsClick = {},
             contentBottomPadding = 96.dp,
         )

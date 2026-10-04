@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Brand -->
-    <string name="app_name">gallius</string>
+    <string name="app_name">Gallius</string>
     <string name="brand_logo_cd">Gallius logo</string>
     <string name="brand_dot_content_description">Online status</string>
 
@@ -65,6 +65,9 @@
     <string name="search_pick_category_body">Choose a category to browse tags and media.</string>
     <string name="search_no_media_in_filter">No media matches this filter.</string>
     <string name="search_items_count">%1$d items</string>
+    <string name="search_add_to_category_fab_cd">Add media to category</string>
+    <string name="search_add_to_category_title">Add to %1$s</string>
+    <string name="search_add_media_confirm">Add to category</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>

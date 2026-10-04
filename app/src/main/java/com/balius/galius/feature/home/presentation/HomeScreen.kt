@@ -1,5 +1,6 @@
 package com.balius.galius.feature.home.presentation
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -21,6 +22,7 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Close
@@ -67,7 +69,6 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun HomeRoute(
-    onOpenSearch: () -> Unit,
     onImportClick: () -> Unit,
     onOpenViewer: (mediaId: String, source: MediaBrowseSource) -> Unit,
     contentBottomPadding: Dp,
@@ -87,10 +88,13 @@ fun HomeRoute(
         }
     }
 
+    BackHandler(enabled = state.selectionMode) {
+        viewModel.onIntent(HomeIntent.ClearSelection)
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         HomeScreen(
             state = state,
-            onOpenSearch = onOpenSearch,
             onImportClick = onImportClick,
             onToggleVideosOnly = { viewModel.onIntent(HomeIntent.ToggleVideosOnly) },
             onLongPressItem = { viewModel.onIntent(HomeIntent.LongPressItem(it)) },
@@ -142,7 +146,6 @@ fun HomeRoute(
 @Composable
 fun HomeScreen(
     state: HomeState,
-    onOpenSearch: () -> Unit,
     onImportClick: () -> Unit,
     onToggleVideosOnly: () -> Unit,
     onLongPressItem: (String) -> Unit,
@@ -155,7 +158,7 @@ fun HomeScreen(
 ) {
     val typography = GaliusThemeTokens.typography
     val colors = GaliusThemeTokens.colors
-    val fabClearance = 72.dp
+    val fabClearance = 96.dp
 
     Box(
         modifier = modifier
@@ -164,7 +167,6 @@ fun HomeScreen(
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             GalliusTopBar(
-                onSearchClick = onOpenSearch,
                 selectionCount = state.selectedCount,
                 isRemoving = state.isRemoving,
                 onClearSelection = onClearSelection,
@@ -186,6 +188,7 @@ fun HomeScreen(
                     FilterChipRow(
                         videosOnly = state.videosOnly,
                         onToggleVideosOnly = onToggleVideosOnly,
+                        modifier = Modifier.padding(bottom = GaliusSpacing.xs),
                     )
                 }
 
@@ -220,7 +223,7 @@ fun HomeScreen(
                                 text = stringResource(R.string.home_section_recent_hits),
                                 style = typography.headlineSm,
                                 color = colors.metadataDescription,
-                                modifier = Modifier.padding(vertical = GaliusSpacing.sm),
+                                modifier = Modifier.padding(bottom = GaliusSpacing.xs),
                             )
                         }
                         items(
@@ -255,8 +258,9 @@ fun HomeScreen(
                     .align(Alignment.BottomEnd)
                     .padding(
                         end = GaliusSpacing.margin,
-                        bottom = contentBottomPadding + GaliusSpacing.sm,
+                        bottom = contentBottomPadding + GaliusSpacing.lg,
                     ),
+                shape = CircleShape,
                 containerColor = PrimaryContainer,
                 contentColor = OnPrimaryContainer,
             ) {
@@ -403,7 +407,6 @@ private fun HomeScreenEmptyPreview() {
     GaliusTheme {
         HomeScreen(
             state = HomeState(isLoading = false, items = emptyList()),
-            onOpenSearch = {},
             onImportClick = {},
             onToggleVideosOnly = {},
             onLongPressItem = {},
@@ -444,7 +447,6 @@ private fun HomeScreenFilledPreview() {
                     ),
                 ),
             ),
-            onOpenSearch = {},
             onImportClick = {},
             onToggleVideosOnly = {},
             onLongPressItem = {},

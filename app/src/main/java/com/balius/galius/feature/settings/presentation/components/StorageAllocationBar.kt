@@ -36,6 +36,7 @@ fun StorageAllocationBar(
 ) {
     val typography = GaliusThemeTokens.typography
     val scheme = MaterialTheme.colorScheme
+    val storageColors = GaliusThemeTokens.colors
     val total = stats.totalBytes.coerceAtLeast(1L)
     val photoWeight = (stats.photoBytes.toFloat() / total).coerceIn(0f, 1f)
     val videoWeight = (stats.videoBytes.toFloat() / total).coerceIn(0f, 1f)
@@ -83,7 +84,7 @@ fun StorageAllocationBar(
                         .weight(photoWeight.coerceAtLeast(0.02f))
                         .fillMaxHeight()
                         .clip(RoundedCornerShape(topStart = 999.dp, bottomStart = 999.dp))
-                        .background(scheme.primaryContainer),
+                        .background(storageColors.storagePhoto),
                 )
             }
             if (videoWeight > 0f) {
@@ -91,7 +92,7 @@ fun StorageAllocationBar(
                     modifier = Modifier
                         .weight(videoWeight.coerceAtLeast(0.02f))
                         .fillMaxHeight()
-                        .background(scheme.secondary),
+                        .background(storageColors.storageVideo),
                 )
             }
             if (dbWeight > 0f) {
@@ -100,7 +101,7 @@ fun StorageAllocationBar(
                         .weight(dbWeight.coerceAtLeast(0.02f))
                         .fillMaxHeight()
                         .clip(RoundedCornerShape(topEnd = 999.dp, bottomEnd = 999.dp))
-                        .background(scheme.tertiary),
+                        .background(storageColors.storageDb),
                 )
             }
             if (stats.totalBytes == 0L) {
@@ -112,15 +113,15 @@ fun StorageAllocationBar(
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             LegendItem(
-                color = scheme.primaryContainer,
+                color = storageColors.storagePhoto,
                 label = stringResource(R.string.settings_storage_photos, photoLabel),
             )
             LegendItem(
-                color = scheme.secondary,
+                color = storageColors.storageVideo,
                 label = stringResource(R.string.settings_storage_videos, videoLabel),
             )
             LegendItem(
-                color = scheme.tertiary,
+                color = storageColors.storageDb,
                 label = stringResource(R.string.settings_storage_db, dbLabel),
             )
         }

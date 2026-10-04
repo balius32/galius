@@ -29,6 +29,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.balius.galius.common.model.AccentOption
 import com.balius.galius.common.model.ThemeMode
+import com.balius.galius.common.ui.SyncSystemBarAppearance
 import com.balius.galius.core.navigation.GaliusNavHost
 import com.balius.galius.feature.settings.domain.AppLockAuthResult
 import com.balius.galius.feature.settings.domain.AppLockAuthenticator
@@ -92,6 +93,7 @@ fun GaliusAppRoot(
         darkTheme = darkTheme,
         accent = prefs.accent,
     ) {
+        SyncSystemBarAppearance(darkTheme = darkTheme)
         AppLockGate(
             appLockEnabled = prefs.appLockEnabled,
             authenticator = appLockAuthenticator,

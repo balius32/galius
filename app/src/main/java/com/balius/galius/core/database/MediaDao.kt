@@ -24,9 +24,8 @@ interface MediaDao {
     @Query(
         """
         SELECT DISTINCT m.* FROM media_items m
-        INNER JOIN media_tags mt ON mt.mediaId = m.id
-        INNER JOIN tags t ON t.id = mt.tagId
-        WHERE t.categoryId = :categoryId
+        INNER JOIN media_categories mc ON mc.mediaId = m.id
+        WHERE mc.categoryId = :categoryId
         ORDER BY m.createdAtMillis DESC
         """,
     )

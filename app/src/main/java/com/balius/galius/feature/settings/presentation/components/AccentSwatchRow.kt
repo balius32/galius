@@ -38,7 +38,6 @@ fun AccentSwatchRow(
     modifier: Modifier = Modifier,
 ) {
     val typography = GaliusThemeTokens.typography
-    val colors = GaliusThemeTokens.colors
     val scheme = MaterialTheme.colorScheme
 
     Column(
@@ -58,7 +57,7 @@ fun AccentSwatchRow(
             Text(
                 text = accentLabel(selected),
                 style = typography.labelNumeric,
-                color = colors.accentCyan,
+                color = scheme.onSurfaceVariant,
             )
         }
         Row(

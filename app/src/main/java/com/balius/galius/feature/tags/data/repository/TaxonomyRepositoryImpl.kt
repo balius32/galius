@@ -1,6 +1,7 @@
 package com.balius.galius.feature.tags.data.repository
 
 import com.balius.galius.core.database.CategoryEntity
+import com.balius.galius.core.database.MediaCategoryEntity
 import com.balius.galius.core.database.MediaTagEntity
 import com.balius.galius.core.database.TagEntity
 import com.balius.galius.core.database.TaxonomyDao
@@ -72,10 +73,29 @@ class TaxonomyRepositoryImpl(
 
     override suspend fun addTagToMedia(mediaId: String, tagId: String) {
         taxonomyDao.insertMediaTag(MediaTagEntity(mediaId = mediaId, tagId = tagId))
+        val tag = taxonomyDao.getTagById(tagId)
+        if (tag != null) {
+            taxonomyDao.insertMediaCategory(
+                MediaCategoryEntity(mediaId = mediaId, categoryId = tag.categoryId),
+            )
+        }
     }
 
     override suspend fun removeTagFromMedia(mediaId: String, tagId: String) {
         taxonomyDao.deleteMediaTag(mediaId = mediaId, tagId = tagId)
+    }
+
+    override suspend fun addMediaToCategory(categoryId: String, mediaIds: Collection<String>) {
+        require(taxonomyDao.getCategoryById(categoryId) != null) { "Category not found" }
+        mediaIds.forEach { mediaId ->
+            taxonomyDao.insertMediaCategory(
+                MediaCategoryEntity(mediaId = mediaId, categoryId = categoryId),
+            )
+        }
+    }
+
+    override suspend fun removeMediaFromCategory(categoryId: String, mediaId: String) {
+        taxonomyDao.deleteMediaCategory(mediaId = mediaId, categoryId = categoryId)
     }
 
     private fun CategoryEntity.toDomain() = Category(

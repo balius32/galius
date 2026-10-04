@@ -40,8 +40,17 @@ interface TaxonomyDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertMediaTag(entity: MediaTagEntity)
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertMediaCategory(entity: MediaCategoryEntity)
+
+    @Query("SELECT * FROM tags WHERE id = :tagId LIMIT 1")
+    suspend fun getTagById(tagId: String): TagEntity?
+
     @Query("DELETE FROM media_tags WHERE mediaId = :mediaId AND tagId = :tagId")
     suspend fun deleteMediaTag(mediaId: String, tagId: String)
+
+    @Query("DELETE FROM media_categories WHERE mediaId = :mediaId AND categoryId = :categoryId")
+    suspend fun deleteMediaCategory(mediaId: String, categoryId: String)
 
     @Query("DELETE FROM tags WHERE id = :tagId")
     suspend fun deleteTag(tagId: String)

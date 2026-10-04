@@ -119,6 +119,9 @@ data class GaliusExtendedColors(
     val tagRoseContainer: Color = TagRoseContainer,
     val tagNeutral: Color = TagNeutral,
     val tagNeutralContainer: Color = TagNeutralContainer,
+    val storagePhoto: Color = AccentIndigo,
+    val storageVideo: Color = AccentCyan,
+    val storageDb: Color = TagSky,
     val mediaScrim: Brush = Brush.verticalGradient(
         colors = listOf(Color.Transparent, ScrimBottom),
     ),
@@ -147,6 +150,13 @@ object GaliusThemeTokens {
 data class AccentPalette(
     val primaryContainer: Color,
     val onPrimaryContainer: Color,
+    val primary: Color,
+    val onPrimary: Color,
+    val primaryLight: Color,
+    val onPrimaryLight: Color,
+    val storagePhoto: Color,
+    val storageVideo: Color,
+    val storageDb: Color,
     val accent: Color,
     val focusHalo: Color,
     val swatch: Color,
@@ -156,6 +166,13 @@ fun accentPalette(option: AccentOption): AccentPalette = when (option) {
     AccentOption.ElectricIndigo -> AccentPalette(
         primaryContainer = Color(0xFF5856D6),
         onPrimaryContainer = Color(0xFFE7E4FF),
+        primary = Color(0xFFC2C1FF),
+        onPrimary = Color(0xFF1C0B9F),
+        primaryLight = Color(0xFF4F4CCD),
+        onPrimaryLight = Color(0xFFFFFFFF),
+        storagePhoto = Color(0xFF5856D6),
+        storageVideo = Color(0xFF00C7BE),
+        storageDb = Color(0xFF64D2FF),
         accent = Color(0xFF5856D6),
         focusHalo = Color(0x735856D6),
         swatch = Color(0xFF5856D6),
@@ -163,6 +180,13 @@ fun accentPalette(option: AccentOption): AccentPalette = when (option) {
     AccentOption.ElectricCyan -> AccentPalette(
         primaryContainer = Color(0xFF00C7BE),
         onPrimaryContainer = Color(0xFF003734),
+        primary = Color(0xFF61F9EF),
+        onPrimary = Color(0xFF003734),
+        primaryLight = Color(0xFF006A65),
+        onPrimaryLight = Color(0xFFFFFFFF),
+        storagePhoto = Color(0xFF00C7BE),
+        storageVideo = Color(0xFF5856D6),
+        storageDb = Color(0xFFBF5AF2),
         accent = Color(0xFF00C7BE),
         focusHalo = Color(0x7300C7BE),
         swatch = Color(0xFF00C7BE),
@@ -170,6 +194,13 @@ fun accentPalette(option: AccentOption): AccentPalette = when (option) {
     AccentOption.SolarAmber -> AccentPalette(
         primaryContainer = Color(0xFFFF9F0A),
         onPrimaryContainer = Color(0xFF3B2200),
+        primary = Color(0xFFFFCC70),
+        onPrimary = Color(0xFF3B2200),
+        primaryLight = Color(0xFFC77A00),
+        onPrimaryLight = Color(0xFFFFFFFF),
+        storagePhoto = Color(0xFFFF9F0A),
+        storageVideo = Color(0xFFFF375F),
+        storageDb = Color(0xFF64D2FF),
         accent = Color(0xFFFF9F0A),
         focusHalo = Color(0x73FF9F0A),
         swatch = Color(0xFFFF9F0A),
@@ -177,23 +208,46 @@ fun accentPalette(option: AccentOption): AccentPalette = when (option) {
     AccentOption.DeepJade -> AccentPalette(
         primaryContainer = Color(0xFF30D158),
         onPrimaryContainer = Color(0xFF003910),
+        primary = Color(0xFF6FE887),
+        onPrimary = Color(0xFF003910),
+        primaryLight = Color(0xFF1B8A3A),
+        onPrimaryLight = Color(0xFFFFFFFF),
+        storagePhoto = Color(0xFF30D158),
+        storageVideo = Color(0xFF00C7BE),
+        storageDb = Color(0xFF5856D6),
         accent = Color(0xFF30D158),
         focusHalo = Color(0x7330D158),
         swatch = Color(0xFF30D158),
     )
 }
 
-private fun ColorScheme.withAccent(palette: AccentPalette): ColorScheme =
-    copy(
-        primaryContainer = palette.primaryContainer,
-        onPrimaryContainer = palette.onPrimaryContainer,
-        surfaceTint = palette.accent,
-    )
+private fun ColorScheme.withAccent(palette: AccentPalette, darkTheme: Boolean): ColorScheme =
+    if (darkTheme) {
+        copy(
+            primary = palette.primary,
+            onPrimary = palette.onPrimary,
+            primaryContainer = palette.primaryContainer,
+            onPrimaryContainer = palette.onPrimaryContainer,
+            surfaceTint = palette.accent,
+        )
+    } else {
+        copy(
+            primary = palette.primaryLight,
+            onPrimary = palette.onPrimaryLight,
+            primaryContainer = palette.primaryContainer,
+            onPrimaryContainer = palette.onPrimaryContainer,
+            surfaceTint = palette.accent,
+        )
+    }
 
 private fun darkExtended(palette: AccentPalette): GaliusExtendedColors =
     GaliusExtendedColors(
         accentIndigo = palette.accent,
+        accentCyan = palette.accent,
         focusHalo = palette.focusHalo,
+        storagePhoto = palette.storagePhoto,
+        storageVideo = palette.storageVideo,
+        storageDb = palette.storageDb,
     )
 
 private fun lightExtended(palette: AccentPalette): GaliusExtendedColors =
@@ -202,7 +256,7 @@ private fun lightExtended(palette: AccentPalette): GaliusExtendedColors =
         card = LightCardSurface,
         elevated = LightElevatedSurface,
         accentIndigo = palette.accent,
-        accentCyan = AccentCyan,
+        accentCyan = palette.accent,
         ghostBorder = LightGhostBorder,
         ghostBorderSubtle = LightGhostBorderSubtle,
         ghostBorderStrong = LightGhostBorderStrong,
@@ -212,6 +266,9 @@ private fun lightExtended(palette: AccentPalette): GaliusExtendedColors =
         metadataDescription = LightMetadataDescription,
         metadataCaption = LightMetadataCaption,
         focusHalo = palette.focusHalo,
+        storagePhoto = palette.storagePhoto,
+        storageVideo = palette.storageVideo,
+        storageDb = palette.storageDb,
         tagNeutralContainer = LightTagNeutralContainer,
         mediaScrim = Brush.verticalGradient(
             colors = listOf(Color.Transparent, LightScrimBottom),
@@ -231,7 +288,7 @@ fun GaliusTheme(
     val palette = remember(accent) { accentPalette(accent) }
     val colorScheme = remember(darkTheme, accent) {
         val base = if (darkTheme) GaliusDarkBaseScheme else GaliusLightBaseScheme
-        base.withAccent(palette)
+        base.withAccent(palette, darkTheme)
     }
     val extended = remember(darkTheme, accent) {
         if (darkTheme) darkExtended(palette) else lightExtended(palette)

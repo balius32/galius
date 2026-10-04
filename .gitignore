@@ -53,5 +53,8 @@ GoogleService-Info.plist
 # NDK / profiling
 *.hprof
 
+# graphify knowledge graph output (rebuild with /graphify .)
+graphify-out/
+
 # Optional: keep IDE out of remote if preferred (uncomment if needed)
 # .idea/

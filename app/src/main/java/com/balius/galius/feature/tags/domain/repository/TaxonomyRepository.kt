@@ -18,4 +18,6 @@ interface TaxonomyRepository {
     suspend fun deleteTag(tagId: String)
     suspend fun addTagToMedia(mediaId: String, tagId: String)
     suspend fun removeTagFromMedia(mediaId: String, tagId: String)
+    suspend fun addMediaToCategory(categoryId: String, mediaIds: Collection<String>)
+    suspend fun removeMediaFromCategory(categoryId: String, mediaId: String)
 }

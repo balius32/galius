@@ -11,8 +11,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         CategoryEntity::class,
         TagEntity::class,
         MediaTagEntity::class,
+        MediaCategoryEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = false,
 )
 abstract class GaliusDatabase : RoomDatabase() {
@@ -78,6 +79,36 @@ abstract class GaliusDatabase : RoomDatabase() {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL(
                     "ALTER TABLE categories ADD COLUMN colorKey TEXT NOT NULL DEFAULT 'indigo'",
+                )
+            }
+        }
+
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS media_categories (
+                        mediaId TEXT NOT NULL,
+                        categoryId TEXT NOT NULL,
+                        PRIMARY KEY(mediaId, categoryId),
+                        FOREIGN KEY(mediaId) REFERENCES media_items(id) ON DELETE CASCADE,
+                        FOREIGN KEY(categoryId) REFERENCES categories(id) ON DELETE CASCADE
+                    )
+                    """.trimIndent(),
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_media_categories_mediaId ON media_categories(mediaId)",
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_media_categories_categoryId ON media_categories(categoryId)",
+                )
+                db.execSQL(
+                    """
+                    INSERT OR IGNORE INTO media_categories (mediaId, categoryId)
+                    SELECT DISTINCT mt.mediaId, t.categoryId
+                    FROM media_tags mt
+                    INNER JOIN tags t ON t.id = mt.tagId
+                    """.trimIndent(),
                 )
             }
         }

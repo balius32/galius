@@ -206,7 +206,6 @@ fun GaliusNavHost(
             entryProvider = entryProvider {
                 entry<TopLevelRoute.Home> {
                     HomeRoute(
-                        onOpenSearch = { navigateToTopLevel(TopLevelRoute.Search) },
                         onImportClick = importSessionViewModel::onImportClick,
                         onOpenViewer = { mediaId, source ->
                             backStack.add(MediaViewerRoute(mediaId, source))
@@ -224,7 +223,6 @@ fun GaliusNavHost(
                 }
                 entry<TopLevelRoute.Settings> {
                     SettingsRoute(
-                        onImportClick = importSessionViewModel::onImportClick,
                         onManageTagsClick = { backStack.add(ManageTagsRoute) },
                         contentBottomPadding = contentBottomPadding,
                     )

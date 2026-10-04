@@ -37,6 +37,7 @@ import com.balius.galius.feature.settings.presentation.SettingsReducer
 import com.balius.galius.feature.settings.presentation.SettingsViewModel
 import com.balius.galius.feature.tags.data.repository.TaxonomyRepositoryImpl
 import com.balius.galius.feature.tags.domain.repository.TaxonomyRepository
+import com.balius.galius.feature.tags.domain.usecase.AddMediaToCategoryUseCase
 import com.balius.galius.feature.tags.domain.usecase.CreateCategoryUseCase
 import com.balius.galius.feature.tags.domain.usecase.CreateTagUseCase
 import com.balius.galius.feature.tags.domain.usecase.DeleteTagUseCase
@@ -63,6 +64,7 @@ val appModule = module {
                 GaliusDatabase.MIGRATION_1_2,
                 GaliusDatabase.MIGRATION_2_3,
                 GaliusDatabase.MIGRATION_3_4,
+                GaliusDatabase.MIGRATION_4_5,
             )
             .build()
     }
@@ -91,6 +93,7 @@ val appModule = module {
     factoryOf(::DeleteTagUseCase)
     factoryOf(::ObserveMediaTagsUseCase)
     factoryOf(::SetMediaTagUseCase)
+    factoryOf(::AddMediaToCategoryUseCase)
     factoryOf(::ObserveSettingsPreferencesUseCase)
     factoryOf(::SetThemeModeUseCase)
     factoryOf(::SetAccentUseCase)
