@@ -2,6 +2,7 @@ package com.balius.galius.common.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -43,6 +45,8 @@ fun GalliusTopBar(
     onClearSelection: (() -> Unit)? = null,
     onShareClick: (() -> Unit)? = null,
     onRemoveClick: (() -> Unit)? = null,
+    filterActiveCount: Int = 0,
+    onFilterClick: (() -> Unit)? = null,
 ) {
     if (selectionCount > 0) {
         SelectionTopBar(
@@ -54,13 +58,20 @@ fun GalliusTopBar(
             modifier = modifier,
         )
     } else {
-        BrandTopBar(title = title, modifier = modifier)
+        BrandTopBar(
+            title = title,
+            filterActiveCount = filterActiveCount,
+            onFilterClick = onFilterClick,
+            modifier = modifier,
+        )
     }
 }
 
 @Composable
 private fun BrandTopBar(
     title: String,
+    filterActiveCount: Int,
+    onFilterClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     val typography = GaliusThemeTokens.typography
@@ -79,7 +90,7 @@ private fun BrandTopBar(
                 .padding(horizontal = GaliusSpacing.margin)
                 .height(56.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start,
+            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Text(
                 text = title,
@@ -89,6 +100,26 @@ private fun BrandTopBar(
                     platformStyle = PlatformTextStyle(includeFontPadding = false),
                 ),
             )
+            if (onFilterClick != null) {
+                Box {
+                    IconButton(onClick = onFilterClick) {
+                        Icon(
+                            imageVector = Icons.Outlined.FilterList,
+                            contentDescription = stringResource(R.string.search_filter_cd),
+                            tint = onSurface,
+                        )
+                    }
+                    if (filterActiveCount > 0) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(top = 10.dp, end = 10.dp)
+                                .size(8.dp)
+                                .background(Primary, CircleShape),
+                        )
+                    }
+                }
+            }
         }
     }
 }

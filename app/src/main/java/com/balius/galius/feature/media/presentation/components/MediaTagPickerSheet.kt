@@ -21,7 +21,6 @@ import com.balius.galius.R
 import com.balius.galius.common.ui.TagChip
 import com.balius.galius.feature.tags.domain.model.CategoryWithTags
 import com.balius.galius.feature.tags.domain.model.TagColorKey
-import com.balius.galius.ui.theme.CardSurface
 import com.balius.galius.ui.theme.GaliusSpacing
 import com.balius.galius.ui.theme.GaliusTheme
 import com.balius.galius.ui.theme.GaliusThemeTokens
@@ -37,12 +36,13 @@ fun MediaTagPickerSheet(
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val typography = GaliusThemeTokens.typography
+    val colors = GaliusThemeTokens.colors
     val available = categories.filter { it.tags.isNotEmpty() }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = CardSurface,
+        containerColor = colors.card,
         shape = SheetShape,
     ) {
         Column(

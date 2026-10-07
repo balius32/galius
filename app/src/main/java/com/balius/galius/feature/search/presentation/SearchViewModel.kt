@@ -7,8 +7,8 @@ import com.balius.galius.R
 import com.balius.galius.core.mvi.Reducer
 import com.balius.galius.feature.media.domain.model.MediaItem
 import com.balius.galius.feature.media.domain.usecase.ObserveLibraryUseCase
+import com.balius.galius.feature.media.domain.usecase.ObserveMediaByAllTagsUseCase
 import com.balius.galius.feature.media.domain.usecase.ObserveMediaByCategoryUseCase
-import com.balius.galius.feature.media.domain.usecase.ObserveMediaByTagUseCase
 import com.balius.galius.feature.tags.domain.model.CategoryWithTags
 import com.balius.galius.feature.tags.domain.model.Tag
 import com.balius.galius.feature.tags.domain.usecase.AddMediaToCategoryUseCase
@@ -31,7 +31,8 @@ import kotlinx.coroutines.launch
 data class SearchState(
     val categories: List<CategoryWithTags> = emptyList(),
     val selectedCategoryId: String? = null,
-    val selectedTagId: String? = null,
+    val selectedTagIds: Set<String> = emptySet(),
+    val filterSheetVisible: Boolean = false,
     val results: List<MediaItem> = emptyList(),
     val addMediaPickerVisible: Boolean = false,
     val libraryItems: List<MediaItem> = emptyList(),
@@ -41,17 +42,25 @@ data class SearchState(
     val selectedCategory: CategoryWithTags?
         get() = categories.find { it.category.id == selectedCategoryId }
 
-    val selectedTags: List<Tag>
-        get() = selectedCategory?.tags.orEmpty()
+    val selectedFilterTags: List<Tag>
+        get() = categories
+            .flatMap { it.tags }
+            .filter { it.id in selectedTagIds }
 
     val pickerSelectedCount: Int
         get() = pickerSelectedIds.size
+
+    val hasActiveTagFilter: Boolean
+        get() = selectedTagIds.isNotEmpty()
 }
 
 sealed interface SearchIntent {
     data class CategoriesUpdated(val categories: List<CategoryWithTags>) : SearchIntent
     data class CategorySelected(val categoryId: String) : SearchIntent
-    data class TagSelected(val tagId: String) : SearchIntent
+    data class ToggleFilterTag(val tagId: String) : SearchIntent
+    data object ClearFilterTags : SearchIntent
+    data object OpenFilterSheet : SearchIntent
+    data object DismissFilterSheet : SearchIntent
     data class ResultsUpdated(val results: List<MediaItem>) : SearchIntent
     data object OpenAddMediaPicker : SearchIntent
     data object DismissAddMediaPicker : SearchIntent
@@ -68,24 +77,38 @@ sealed interface SearchEffect {
 class SearchReducer : Reducer<SearchState, SearchIntent> {
     override fun reduce(state: SearchState, intent: SearchIntent): SearchState = when (intent) {
         is SearchIntent.CategoriesUpdated -> {
+            val allTagIds = intent.categories.flatMap { it.tags }.map { it.id }.toSet()
             val selectedStillExists = state.selectedCategoryId?.let { id ->
                 intent.categories.any { it.category.id == id }
             } == true
+            val prunedTagIds = state.selectedTagIds.intersect(allTagIds)
             state.copy(
                 categories = intent.categories,
                 selectedCategoryId = if (selectedStillExists) state.selectedCategoryId else null,
-                selectedTagId = if (selectedStillExists) state.selectedTagId else null,
+                selectedTagIds = prunedTagIds,
             )
         }
-        is SearchIntent.CategorySelected -> state.copy(
-            selectedCategoryId = intent.categoryId,
-            selectedTagId = null,
-            addMediaPickerVisible = false,
-            pickerSelectedIds = emptySet(),
-        )
-        is SearchIntent.TagSelected -> state.copy(
-            selectedTagId = if (state.selectedTagId == intent.tagId) null else intent.tagId,
-        )
+        is SearchIntent.CategorySelected -> {
+            val nextCategoryId =
+                if (state.selectedCategoryId == intent.categoryId) null else intent.categoryId
+            state.copy(
+                selectedCategoryId = nextCategoryId,
+                addMediaPickerVisible = false,
+                pickerSelectedIds = emptySet(),
+            )
+        }
+        is SearchIntent.ToggleFilterTag -> {
+            val next = state.selectedTagIds.toMutableSet()
+            if (intent.tagId in next) {
+                next.remove(intent.tagId)
+            } else {
+                next.add(intent.tagId)
+            }
+            state.copy(selectedTagIds = next)
+        }
+        SearchIntent.ClearFilterTags -> state.copy(selectedTagIds = emptySet())
+        SearchIntent.OpenFilterSheet -> state.copy(filterSheetVisible = true)
+        SearchIntent.DismissFilterSheet -> state.copy(filterSheetVisible = false)
         is SearchIntent.ResultsUpdated -> state.copy(results = intent.results)
         SearchIntent.OpenAddMediaPicker -> state.copy(
             addMediaPickerVisible = true,
@@ -115,7 +138,7 @@ class SearchViewModel(
     private val reducer: SearchReducer,
     private val observeCategoriesUseCase: ObserveCategoriesUseCase,
     private val observeMediaByCategoryUseCase: ObserveMediaByCategoryUseCase,
-    private val observeMediaByTagUseCase: ObserveMediaByTagUseCase,
+    private val observeMediaByAllTagsUseCase: ObserveMediaByAllTagsUseCase,
     private val observeLibraryUseCase: ObserveLibraryUseCase,
     private val addMediaToCategoryUseCase: AddMediaToCategoryUseCase,
 ) : ViewModel() {
@@ -134,11 +157,11 @@ class SearchViewModel(
         viewModelScope.launch {
             combine(
                 _state.map { it.selectedCategoryId }.distinctUntilChanged(),
-                _state.map { it.selectedTagId }.distinctUntilChanged(),
-            ) { categoryId, tagId -> categoryId to tagId }
-                .flatMapLatest { (categoryId, tagId) ->
+                _state.map { it.selectedTagIds }.distinctUntilChanged(),
+            ) { categoryId, tagIds -> categoryId to tagIds }
+                .flatMapLatest { (categoryId, tagIds) ->
                     when {
-                        tagId != null -> observeMediaByTagUseCase(tagId)
+                        tagIds.isNotEmpty() -> observeMediaByAllTagsUseCase(tagIds)
                         categoryId != null -> observeMediaByCategoryUseCase(categoryId)
                         else -> flowOf(emptyList())
                     }

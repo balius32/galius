@@ -15,6 +15,7 @@ import com.balius.galius.feature.media.domain.usecase.ImportMediaUseCase
 import com.balius.galius.feature.media.domain.usecase.ObserveBrowseMediaUseCase
 import com.balius.galius.feature.media.domain.usecase.ObserveLibraryUseCase
 import com.balius.galius.feature.media.domain.usecase.ObserveMediaByCategoryUseCase
+import com.balius.galius.feature.media.domain.usecase.ObserveMediaByAllTagsUseCase
 import com.balius.galius.feature.media.domain.usecase.ObserveMediaByTagUseCase
 import com.balius.galius.feature.media.domain.usecase.PrepareMediaShareUseCase
 import com.balius.galius.feature.media.domain.usecase.RestoreAndRemoveMediaUseCase
@@ -89,6 +90,7 @@ val appModule = module {
     factoryOf(::ObserveLibraryUseCase)
     factoryOf(::ObserveMediaByCategoryUseCase)
     factoryOf(::ObserveMediaByTagUseCase)
+    factoryOf(::ObserveMediaByAllTagsUseCase)
     factoryOf(::ObserveBrowseMediaUseCase)
     factoryOf(::RestoreAndRemoveMediaUseCase)
     factoryOf(::PrepareMediaShareUseCase)

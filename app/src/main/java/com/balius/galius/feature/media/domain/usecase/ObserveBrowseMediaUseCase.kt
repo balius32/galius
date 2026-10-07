@@ -17,5 +17,6 @@ class ObserveBrowseMediaUseCase(
         }
         is MediaBrowseSource.Category -> mediaRepository.observeByCategoryId(source.categoryId)
         is MediaBrowseSource.Tag -> mediaRepository.observeByTagId(source.tagId)
+        is MediaBrowseSource.Tags -> mediaRepository.observeByAllTagIds(source.tagIds)
     }
 }

@@ -49,21 +49,14 @@ import com.balius.galius.feature.media.domain.model.MediaItem
 import com.balius.galius.feature.media.domain.model.MediaType
 import com.balius.galius.feature.tags.domain.model.Tag
 import com.balius.galius.feature.tags.domain.model.TagColorKey
-import com.balius.galius.ui.theme.AccentIndigo
-import com.balius.galius.ui.theme.CardSurface
-import com.balius.galius.ui.theme.ElevatedSurface
 import com.balius.galius.ui.theme.GaliusRadius
 import com.balius.galius.ui.theme.GaliusSpacing
 import com.balius.galius.ui.theme.GaliusTheme
 import com.balius.galius.ui.theme.GaliusThemeTokens
-import com.balius.galius.ui.theme.GhostBorder
 import com.balius.galius.ui.theme.SheetShape
 import java.text.DateFormat
 import java.util.Date
 import java.util.Locale
-
-private val MetaCardBackground = ElevatedSurface
-private val SurfaceDark = ElevatedSurface
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -76,11 +69,12 @@ fun MediaDetailsSheet(
 ) {
     var favorited by remember(item.id) { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val colors = GaliusThemeTokens.colors
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = CardSurface,
+        containerColor = colors.card,
         shape = SheetShape,
     ) {
         DetailsSheetBody(
@@ -153,8 +147,8 @@ private fun DetailsSheetBody(
                 modifier = Modifier
                     .size(52.dp)
                     .clip(CircleShape)
-                    .background(SurfaceDark.copy(alpha = 0.90f))
-                    .border(1.dp, GhostBorder, CircleShape),
+                    .background(colors.elevated.copy(alpha = 0.90f))
+                    .border(1.dp, colors.ghostBorder, CircleShape),
             ) {
                 Icon(
                     imageVector = if (favorited) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
@@ -168,8 +162,8 @@ private fun DetailsSheetBody(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(GaliusRadius.lg))
-                .background(MetaCardBackground)
-                .border(1.dp, GhostBorder, RoundedCornerShape(GaliusRadius.lg))
+                .background(colors.elevated)
+                .border(1.dp, colors.ghostBorder, RoundedCornerShape(GaliusRadius.lg))
                 .padding(GaliusSpacing.md),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
@@ -220,8 +214,8 @@ private fun DetailsSheetBody(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(GaliusRadius.full))
-                            .background(ElevatedSurface)
-                            .border(1.dp, GhostBorder, RoundedCornerShape(GaliusRadius.full))
+                            .background(colors.elevated)
+                            .border(1.dp, colors.ghostBorder, RoundedCornerShape(GaliusRadius.full))
                             .padding(horizontal = 8.dp, vertical = 2.dp),
                     ) {
                         Text(
@@ -253,8 +247,8 @@ private fun DetailsSheetBody(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(GaliusRadius.md))
-                        .background(CardSurface.copy(alpha = 0.70f))
-                        .border(1.dp, GhostBorder.copy(alpha = 0.5f), RoundedCornerShape(GaliusRadius.md))
+                        .background(colors.elevated.copy(alpha = 0.70f))
+                        .border(1.dp, colors.ghostBorder.copy(alpha = 0.5f), RoundedCornerShape(GaliusRadius.md))
                         .clickable(onClick = onAddTagClick)
                         .padding(horizontal = 10.dp, vertical = 8.dp),
                 ) {
@@ -274,7 +268,7 @@ private fun DetailsSheetBody(
                 .height(56.dp),
             shape = RoundedCornerShape(GaliusRadius.lg),
             colors = ButtonDefaults.buttonColors(
-                containerColor = AccentIndigo,
+                containerColor = colors.accentIndigo,
                 contentColor = MaterialTheme.colorScheme.onSurface,
             ),
         ) {

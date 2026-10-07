@@ -15,4 +15,7 @@ sealed interface MediaBrowseSource {
 
     @Serializable
     data class Tag(val tagId: String) : MediaBrowseSource
+
+    @Serializable
+    data class Tags(val tagIds: Set<String>) : MediaBrowseSource
 }

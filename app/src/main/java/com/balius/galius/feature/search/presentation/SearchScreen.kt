@@ -64,6 +64,7 @@ import com.balius.galius.feature.media.domain.model.MediaBrowseSource
 import com.balius.galius.feature.media.domain.model.MediaItem
 import com.balius.galius.feature.media.domain.model.MediaType
 import com.balius.galius.feature.media.presentation.components.MediaThumbCard
+import com.balius.galius.feature.search.presentation.components.SearchFilterSheet
 import com.balius.galius.feature.tags.domain.model.Category
 import com.balius.galius.feature.tags.domain.model.CategoryWithTags
 import com.balius.galius.feature.tags.domain.model.Tag
@@ -99,18 +100,24 @@ fun SearchRoute(
         }
     }
 
-    BackHandler(enabled = state.addMediaPickerVisible) {
-        viewModel.onIntent(SearchIntent.DismissAddMediaPicker)
+    BackHandler(enabled = state.addMediaPickerVisible || state.filterSheetVisible) {
+        when {
+            state.addMediaPickerVisible -> viewModel.onIntent(SearchIntent.DismissAddMediaPicker)
+            state.filterSheetVisible -> viewModel.onIntent(SearchIntent.DismissFilterSheet)
+        }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
         SearchScreen(
             state = state,
             onCategorySelected = { viewModel.onIntent(SearchIntent.CategorySelected(it)) },
-            onTagSelected = { viewModel.onIntent(SearchIntent.TagSelected(it)) },
+            onToggleFilterTag = { viewModel.onIntent(SearchIntent.ToggleFilterTag(it)) },
+            onOpenFilterSheet = { viewModel.onIntent(SearchIntent.OpenFilterSheet) },
+            onDismissFilterSheet = { viewModel.onIntent(SearchIntent.DismissFilterSheet) },
+            onClearFilterTags = { viewModel.onIntent(SearchIntent.ClearFilterTags) },
             onOpenMedia = { mediaId ->
                 val source = when {
-                    state.selectedTagId != null -> MediaBrowseSource.Tag(state.selectedTagId!!)
+                    state.selectedTagIds.isNotEmpty() -> MediaBrowseSource.Tags(state.selectedTagIds)
                     state.selectedCategoryId != null -> MediaBrowseSource.Category(state.selectedCategoryId!!)
                     else -> return@SearchScreen
                 }
@@ -136,7 +143,10 @@ fun SearchRoute(
 fun SearchScreen(
     state: SearchState,
     onCategorySelected: (String) -> Unit,
-    onTagSelected: (String) -> Unit,
+    onToggleFilterTag: (String) -> Unit,
+    onOpenFilterSheet: () -> Unit,
+    onDismissFilterSheet: () -> Unit,
+    onClearFilterTags: () -> Unit,
     onOpenMedia: (String) -> Unit,
     onOpenAddMediaPicker: () -> Unit,
     onDismissAddMediaPicker: () -> Unit,
@@ -156,10 +166,21 @@ fun SearchScreen(
         SearchBrowseContent(
             state = state,
             onCategorySelected = onCategorySelected,
-            onTagSelected = onTagSelected,
+            onToggleFilterTag = onToggleFilterTag,
+            onOpenFilterSheet = onOpenFilterSheet,
             onOpenMedia = onOpenMedia,
             contentBottomPadding = contentBottomPadding,
         )
+
+        if (state.filterSheetVisible) {
+            SearchFilterSheet(
+                categories = state.categories,
+                selectedTagIds = state.selectedTagIds,
+                onToggleTag = onToggleFilterTag,
+                onClearFilters = onClearFilterTags,
+                onDismiss = onDismissFilterSheet,
+            )
+        }
 
         if (state.addMediaPickerVisible && selectedCategory != null) {
             SearchAddMediaPickerSheet(
@@ -200,7 +221,8 @@ fun SearchScreen(
 private fun SearchBrowseContent(
     state: SearchState,
     onCategorySelected: (String) -> Unit,
-    onTagSelected: (String) -> Unit,
+    onToggleFilterTag: (String) -> Unit,
+    onOpenFilterSheet: () -> Unit,
     onOpenMedia: (String) -> Unit,
     contentBottomPadding: Dp,
 ) {
@@ -208,9 +230,14 @@ private fun SearchBrowseContent(
     val colors = GaliusThemeTokens.colors
     val selectedCategory = state.selectedCategory
     val fabClearance = if (selectedCategory != null) 88.dp else 0.dp
+    val showResults = state.hasActiveTagFilter || selectedCategory != null
 
     Column(modifier = Modifier.fillMaxSize()) {
-        GalliusTopBar(title = stringResource(R.string.nav_search))
+        GalliusTopBar(
+            title = stringResource(R.string.nav_search),
+            filterActiveCount = state.selectedTagIds.size,
+            onFilterClick = onOpenFilterSheet,
+        )
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
             modifier = Modifier
@@ -250,6 +277,29 @@ private fun SearchBrowseContent(
                     }
                 }
 
+                if (state.hasActiveTagFilter) {
+                    SectionHeader(
+                        title = stringResource(
+                            R.string.search_filter_active_count,
+                            state.selectedTagIds.size,
+                        ),
+                        hint = stringResource(R.string.search_click_tag_hint),
+                    )
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(GaliusSpacing.sm),
+                        verticalArrangement = Arrangement.spacedBy(GaliusSpacing.sm),
+                    ) {
+                        state.selectedFilterTags.forEach { tag ->
+                            TagChip(
+                                label = stringResource(R.string.manage_tag_hash, tag.name),
+                                colorKey = tag.colorKey,
+                                selected = true,
+                                onClick = { onToggleFilterTag(tag.id) },
+                            )
+                        }
+                    }
+                }
+
                 if (selectedCategory != null) {
                     SectionHeader(
                         title = stringResource(
@@ -273,25 +323,23 @@ private fun SearchBrowseContent(
                                 TagChip(
                                     label = stringResource(R.string.manage_tag_hash, tag.name),
                                     colorKey = tag.colorKey,
-                                    selected = tag.id == state.selectedTagId,
-                                    onClick = { onTagSelected(tag.id) },
+                                    selected = tag.id in state.selectedTagIds,
+                                    onClick = { onToggleFilterTag(tag.id) },
                                 )
                             }
                         }
                     }
 
-                    val resultsTitle = state.selectedTagId?.let { tagId ->
-                        val tagName = selectedCategory.tags.find { it.id == tagId }?.name.orEmpty()
-                        stringResource(R.string.search_files_with_tag, tagName)
-                    } ?: stringResource(
-                        R.string.search_files_in_category,
-                        selectedCategory.category.name,
-                    )
-                    SectionHeader(
-                        title = resultsTitle,
-                        hint = stringResource(R.string.search_items_count, state.results.size),
-                    )
-                } else if (state.categories.isNotEmpty()) {
+                    if (!state.hasActiveTagFilter) {
+                        SectionHeader(
+                            title = stringResource(
+                                R.string.search_files_in_category,
+                                selectedCategory.category.name,
+                            ),
+                            hint = stringResource(R.string.search_items_count, state.results.size),
+                        )
+                    }
+                } else if (state.categories.isNotEmpty() && !state.hasActiveTagFilter) {
                     Text(
                         text = stringResource(R.string.search_pick_category_body),
                         style = typography.bodyMd,
@@ -299,10 +347,20 @@ private fun SearchBrowseContent(
                         textAlign = TextAlign.Start,
                     )
                 }
+
+                if (state.hasActiveTagFilter) {
+                    SectionHeader(
+                        title = stringResource(
+                            R.string.search_files_with_tags,
+                            state.selectedTagIds.size,
+                        ),
+                        hint = stringResource(R.string.search_items_count, state.results.size),
+                    )
+                }
             }
         }
 
-        if (selectedCategory != null && state.results.isEmpty()) {
+        if (showResults && state.results.isEmpty()) {
             item(span = { GridItemSpan(maxLineSpan) }) {
                 Text(
                     text = stringResource(R.string.search_no_media_in_filter),
@@ -313,13 +371,15 @@ private fun SearchBrowseContent(
             }
         }
 
-        items(state.results, key = { it.id }) { item ->
-            MediaThumbCard(
-                item = item,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onOpenMedia(item.id) },
-            )
+        if (showResults) {
+            items(state.results, key = { it.id }) { item ->
+                MediaThumbCard(
+                    item = item,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onOpenMedia(item.id) },
+                )
+            }
         }
         }
     }
@@ -530,7 +590,7 @@ private fun SearchScreenPreview() {
                     ),
                 ),
                 selectedCategoryId = "1",
-                selectedTagId = "t1",
+                selectedTagIds = setOf("t1"),
                 results = listOf(
                     MediaItem(
                         id = "m1",
@@ -543,7 +603,10 @@ private fun SearchScreenPreview() {
                 ),
             ),
             onCategorySelected = {},
-            onTagSelected = {},
+            onToggleFilterTag = {},
+            onOpenFilterSheet = {},
+            onDismissFilterSheet = {},
+            onClearFilterTags = {},
             onOpenMedia = {},
             onOpenAddMediaPicker = {},
             onDismissAddMediaPicker = {},

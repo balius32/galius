@@ -18,6 +18,7 @@ import com.balius.galius.feature.media.domain.repository.RestoreRemoveResult
 import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
@@ -38,6 +39,14 @@ class MediaRepositoryImpl(
         mediaDao.observeByTagId(tagId).map { entities ->
             entities.map { it.toDomain() }
         }
+
+    override fun observeByAllTagIds(tagIds: Set<String>): Flow<List<MediaItem>> {
+        if (tagIds.isEmpty()) return flowOf(emptyList())
+        val list = tagIds.toList()
+        return mediaDao.observeByAllTagIds(list, list.size).map { entities ->
+            entities.map { it.toDomain() }
+        }
+    }
 
     override fun observeByCategoryId(categoryId: String): Flow<List<MediaItem>> =
         mediaDao.observeByCategoryId(categoryId).map { entities ->

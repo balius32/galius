@@ -9,6 +9,9 @@ interface MediaRepository {
 
     fun observeByTagId(tagId: String): Flow<List<MediaItem>>
 
+    /** Media that has every tag in [tagIds] (AND). Empty set yields empty list. */
+    fun observeByAllTagIds(tagIds: Set<String>): Flow<List<MediaItem>>
+
     fun observeByCategoryId(categoryId: String): Flow<List<MediaItem>>
 
     suspend fun importFromUri(uri: Uri): MediaItem

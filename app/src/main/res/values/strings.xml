@@ -67,7 +67,12 @@
     <string name="search_select_category">Select category</string>
     <string name="search_select_category_hint">Tap to view tags</string>
     <string name="search_tags_in_category">Tags in %1$s</string>
-    <string name="search_click_tag_hint">Tap tag to filter</string>
+    <string name="search_click_tag_hint">Tap tags to filter; multiple tags match all</string>
+    <string name="search_filter_cd">Filter by tags</string>
+    <string name="search_filter_title">Filter by tags</string>
+    <string name="search_filter_clear">Clear filters</string>
+    <string name="search_filter_active_count">%1$d tags selected</string>
+    <string name="search_files_with_tags">Files matching %1$d tags</string>
     <string name="search_files_in_category">Files in %1$s</string>
     <string name="search_files_with_tag">Files tagged with #%1$s</string>
     <string name="search_pick_category_body">Choose a category to browse tags and media.</string>

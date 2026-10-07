@@ -23,6 +23,18 @@ interface MediaDao {
 
     @Query(
         """
+        SELECT m.* FROM media_items m
+        INNER JOIN media_tags mt ON mt.mediaId = m.id
+        WHERE mt.tagId IN (:tagIds)
+        GROUP BY m.id
+        HAVING COUNT(DISTINCT mt.tagId) = :tagCount
+        ORDER BY m.createdAtMillis DESC
+        """,
+    )
+    fun observeByAllTagIds(tagIds: List<String>, tagCount: Int): Flow<List<MediaEntity>>
+
+    @Query(
+        """
         SELECT DISTINCT m.* FROM media_items m
         INNER JOIN media_categories mc ON mc.mediaId = m.id
         WHERE mc.categoryId = :categoryId
