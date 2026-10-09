@@ -4,11 +4,12 @@ import android.content.Context
 import android.net.Uri
 import android.webkit.MimeTypeMap
 import java.io.File
-import java.util.UUID
 
 class VaultFileStore(
     private val context: Context,
 ) {
+    private val copyLock = Any()
+
     fun absolutePath(relativePath: String): String =
         File(context.noBackupFilesDir, relativePath).absolutePath
 
@@ -32,18 +33,52 @@ class VaultFileStore(
         return !file.exists() || file.delete()
     }
 
-    fun copyFromUri(uri: Uri, mimeType: String?): String {
+    fun copyFromUri(uri: Uri, mimeType: String?, displayName: String?): String = synchronized(copyLock) {
         val extension = guessExtension(uri, mimeType)
-        val fileName = "${UUID.randomUUID()}$extension"
+        val fileName = uniqueFileName(sanitizeFileName(displayName, extension))
         val relativePath = "$MEDIA_DIR_RELATIVE/$fileName"
         val destination = File(context.noBackupFilesDir, relativePath)
         destination.parentFile?.mkdirs()
+        val root = vaultMediaRoot().canonicalFile
+        val canonical = destination.canonicalFile
+        val prefix = root.path + File.separator
+        if (!canonical.path.startsWith(prefix)) error("Refusing to write outside vault")
         context.contentResolver.openInputStream(uri)?.use { input ->
             destination.outputStream().use { output ->
                 input.copyTo(output)
             }
         } ?: error("Unable to open media stream")
-        return relativePath
+        relativePath
+    }
+
+    private fun sanitizeFileName(displayName: String?, extension: String): String {
+        val leaf = displayName
+            ?.substringAfterLast('/')
+            ?.substringAfterLast('\\')
+            ?.replace("\u0000", "")
+            ?.trim()
+            .orEmpty()
+        val cleaned = leaf.filter { it != '/' && it != '\\' && it != ':' && it.code >= 32 }
+        val unsafe = cleaned.isEmpty() || cleaned == "." || cleaned == ".." || ".." in cleaned
+        if (unsafe) return "media_${System.currentTimeMillis()}$extension"
+        return if ('.' in cleaned) cleaned else cleaned + extension
+    }
+
+    private fun uniqueFileName(fileName: String): String {
+        val root = vaultMediaRoot()
+        root.mkdirs()
+        if (!File(root, fileName).exists()) return fileName
+        val dot = fileName.lastIndexOf('.')
+        val base = if (dot > 0) fileName.substring(0, dot) else fileName
+        val ext = if (dot > 0) fileName.substring(dot) else ""
+        var index = 2
+        var candidate = "$base ($index)$ext"
+        while (File(root, candidate).exists()) {
+            index++
+            if (index > MAX_NAME_SUFFIX) error("Too many files named $base")
+            candidate = "$base ($index)$ext"
+        }
+        return candidate
     }
 
     private fun guessExtension(uri: Uri, mimeType: String?): String {
@@ -63,5 +98,6 @@ class VaultFileStore(
 
     private companion object {
         const val MEDIA_DIR_RELATIVE = "vault/media"
+        const val MAX_NAME_SUFFIX = 10_000
     }
 }

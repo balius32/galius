@@ -64,7 +64,7 @@ class MediaRepositoryImpl(
         )
         val mediaStoreUri = deleteUriResolver.resolveForDelete(listOf(uri)).firstOrNull() ?: uri
         val originalRelativePath = queryRelativePath(mediaStoreUri) ?: queryRelativePath(uri)
-        val relativePath = vaultFileStore.copyFromUri(uri, normalizedMime)
+        val relativePath = vaultFileStore.copyFromUri(uri, normalizedMime, displayName)
         val entity = MediaEntity(
             id = UUID.randomUUID().toString(),
             relativePath = relativePath,
