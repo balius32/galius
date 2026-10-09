@@ -13,4 +13,12 @@ interface SettingsRepository {
     suspend fun setAccent(accent: AccentOption)
 
     suspend fun setAppLockEnabled(enabled: Boolean)
+
+    suspend fun setAppPin(pin: String)
+
+    suspend fun verifyAppPin(pin: String): Boolean
+
+    suspend fun clearAppLock()
+
+    suspend fun setBiometricUnlockEnabled(enabled: Boolean)
 }

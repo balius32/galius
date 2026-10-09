@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -50,6 +51,7 @@ import com.balius.galius.feature.settings.domain.AppLockAuthResult
 import com.balius.galius.feature.settings.domain.AppLockAuthenticator
 import com.balius.galius.feature.settings.domain.model.LibraryStorageStats
 import com.balius.galius.feature.settings.presentation.components.AccentSwatchRow
+import com.balius.galius.feature.settings.presentation.components.AppPinSheet
 import com.balius.galius.feature.settings.presentation.components.StorageAllocationBar
 import com.balius.galius.feature.settings.presentation.components.ThemeModeSegmentedControl
 import com.balius.galius.ui.theme.GaliusRadius
@@ -76,7 +78,9 @@ fun SettingsRoute(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val lockTitle = stringResource(R.string.app_lock_title)
-    val lockSubtitle = stringResource(R.string.app_lock_subtitle)
+    val lockSubtitle = stringResource(R.string.settings_biometric_unlock_subtitle)
+    val notNow = stringResource(R.string.app_lock_not_now)
+    val biometricAvailable = appLockAuthenticator.canAuthenticate(biometricOnly = true)
 
     fun showMessage(messageRes: Int) {
         scope.launch {
@@ -85,27 +89,57 @@ fun SettingsRoute(
         }
     }
 
+    LaunchedEffect(state.promptBiometricAfterPin) {
+        if (!state.promptBiometricAfterPin) return@LaunchedEffect
+        val host = activity
+        if (host != null && biometricAvailable) {
+            appLockAuthenticator.authenticate(
+                activity = host,
+                title = lockTitle,
+                subtitle = lockSubtitle,
+                biometricOnly = true,
+                negativeButtonText = notNow,
+            ) { result ->
+                if (result == AppLockAuthResult.Success) {
+                    viewModel.onIntent(SettingsIntent.SetBiometricUnlock(true))
+                }
+                viewModel.onIntent(SettingsIntent.BiometricPromptHandled)
+            }
+        } else {
+            viewModel.onIntent(SettingsIntent.BiometricPromptHandled)
+        }
+    }
+
     BoxWithSnackbar(snackbarHostState = snackbarHostState) {
         SettingsScreen(
             state = state,
+            biometricAvailable = biometricAvailable,
             onThemeModeSelected = { viewModel.onIntent(SettingsIntent.ThemeModeSelected(it)) },
             onAccentSelected = { viewModel.onIntent(SettingsIntent.AccentSelected(it)) },
-            onToggleAppLock = { enabled ->
+            onAppLockCheckedChange = { enabled ->
+                viewModel.onIntent(
+                    if (enabled) SettingsIntent.BeginEnablePin else SettingsIntent.BeginDisablePin,
+                )
+            },
+            onChangePinClick = { viewModel.onIntent(SettingsIntent.BeginChangePin) },
+            onBiometricCheckedChange = { enabled ->
                 if (!enabled) {
-                    viewModel.onIntent(SettingsIntent.ToggleAppLock(false))
+                    viewModel.onIntent(SettingsIntent.SetBiometricUnlock(false))
                 } else {
                     val host = activity
-                    if (host == null || !appLockAuthenticator.canAuthenticate()) {
+                    if (host == null || !biometricAvailable) {
                         showMessage(R.string.app_lock_unavailable)
                     } else {
                         appLockAuthenticator.authenticate(
                             activity = host,
                             title = lockTitle,
                             subtitle = lockSubtitle,
+                            biometricOnly = true,
+                            negativeButtonText = notNow,
                         ) { result ->
                             when (result) {
                                 AppLockAuthResult.Success ->
-                                    viewModel.onIntent(SettingsIntent.ToggleAppLock(true))
+                                    viewModel.onIntent(SettingsIntent.SetBiometricUnlock(true))
                                 AppLockAuthResult.Canceled -> Unit
                                 AppLockAuthResult.Unavailable ->
                                     showMessage(R.string.app_lock_unavailable)
@@ -116,6 +150,10 @@ fun SettingsRoute(
                     }
                 }
             },
+            onPinDigit = { viewModel.onIntent(SettingsIntent.PinDigit(it)) },
+            onPinDelete = { viewModel.onIntent(SettingsIntent.PinDelete) },
+            onPinSubmit = { viewModel.onIntent(SettingsIntent.PinSubmit) },
+            onPinDismiss = { viewModel.onIntent(SettingsIntent.PinDismiss) },
             onManageTagsClick = onManageTagsClick,
             contentBottomPadding = contentBottomPadding,
         )
@@ -139,9 +177,16 @@ private fun BoxWithSnackbar(
 @Composable
 fun SettingsScreen(
     state: SettingsState,
+    biometricAvailable: Boolean,
     onThemeModeSelected: (ThemeMode) -> Unit,
     onAccentSelected: (AccentOption) -> Unit,
-    onToggleAppLock: (Boolean) -> Unit,
+    onAppLockCheckedChange: (Boolean) -> Unit,
+    onChangePinClick: () -> Unit,
+    onBiometricCheckedChange: (Boolean) -> Unit,
+    onPinDigit: (Int) -> Unit,
+    onPinDelete: () -> Unit,
+    onPinSubmit: () -> Unit,
+    onPinDismiss: () -> Unit,
     onManageTagsClick: () -> Unit,
     contentBottomPadding: Dp,
     modifier: Modifier = Modifier,
@@ -156,8 +201,9 @@ fun SettingsScreen(
         }.getOrNull() ?: ""
     }
 
+    Box(modifier = modifier.fillMaxSize()) {
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .background(colors.canvas),
     ) {
@@ -218,9 +264,27 @@ fun SettingsScreen(
         ) {
             SettingsCard {
                 BiometricLockRow(
+                    title = stringResource(R.string.settings_app_lock),
+                    subtitle = stringResource(R.string.settings_app_lock_subtitle),
                     checked = state.appLockEnabled,
-                    onCheckedChange = onToggleAppLock,
+                    onCheckedChange = onAppLockCheckedChange,
                 )
+                if (state.appLockEnabled) {
+                    Spacer(modifier = Modifier.height(GaliusSpacing.md))
+                    SettingsNavRow(
+                        title = stringResource(R.string.settings_change_pin),
+                        onClick = onChangePinClick,
+                    )
+                    if (biometricAvailable) {
+                        Spacer(modifier = Modifier.height(GaliusSpacing.sm))
+                        BiometricLockRow(
+                            title = stringResource(R.string.settings_biometric_unlock),
+                            subtitle = stringResource(R.string.settings_biometric_unlock_subtitle),
+                            checked = state.biometricUnlockEnabled,
+                            onCheckedChange = onBiometricCheckedChange,
+                        )
+                    }
+                }
             }
         }
 
@@ -264,6 +328,16 @@ fun SettingsScreen(
                 .fillMaxWidth()
                 .padding(vertical = GaliusSpacing.lg),
         )
+        }
+    }
+        state.pinPrompt?.let { prompt ->
+            AppPinSheet(
+                prompt = prompt,
+                onDigit = onPinDigit,
+                onDelete = onPinDelete,
+                onSubmit = onPinSubmit,
+                onDismiss = onPinDismiss,
+            )
         }
     }
 }
@@ -316,6 +390,8 @@ private fun SettingsCard(
 
 @Composable
 private fun BiometricLockRow(
+    title: String,
+    subtitle: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
 ) {
@@ -342,13 +418,13 @@ private fun BiometricLockRow(
         }
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = stringResource(R.string.settings_app_lock),
+                text = title,
                 style = typography.bodyMd,
                 fontWeight = FontWeight.SemiBold,
                 color = scheme.onSurface,
             )
             Text(
-                text = stringResource(R.string.settings_app_lock_subtitle),
+                text = subtitle,
                 style = typography.bodySm,
                 color = colors.metadataDescription,
             )
@@ -395,7 +471,14 @@ private fun SettingsScreenDarkPreview() {
             ),
             onThemeModeSelected = {},
             onAccentSelected = {},
-            onToggleAppLock = {},
+            biometricAvailable = true,
+            onAppLockCheckedChange = {},
+            onChangePinClick = {},
+            onBiometricCheckedChange = {},
+            onPinDigit = {},
+            onPinDelete = {},
+            onPinSubmit = {},
+            onPinDismiss = {},
             onManageTagsClick = {},
             contentBottomPadding = 96.dp,
         )
@@ -411,6 +494,7 @@ private fun SettingsScreenLightPreview() {
                 themeMode = ThemeMode.Light,
                 accent = AccentOption.ElectricCyan,
                 appLockEnabled = true,
+                biometricUnlockEnabled = true,
                 storage = LibraryStorageStats(
                     photoBytes = 1_200_000_000,
                     videoBytes = 800_000_000,
@@ -420,7 +504,14 @@ private fun SettingsScreenLightPreview() {
             ),
             onThemeModeSelected = {},
             onAccentSelected = {},
-            onToggleAppLock = {},
+            biometricAvailable = true,
+            onAppLockCheckedChange = {},
+            onChangePinClick = {},
+            onBiometricCheckedChange = {},
+            onPinDigit = {},
+            onPinDelete = {},
+            onPinSubmit = {},
+            onPinDismiss = {},
             onManageTagsClick = {},
             contentBottomPadding = 96.dp,
         )

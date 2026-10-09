@@ -13,14 +13,17 @@ class BiometricAppLockAuthenticator(
     private val context: Context,
 ) : AppLockAuthenticator {
 
-    private val authenticators: Int =
+    private val strongOrCredential: Int =
         Authenticators.BIOMETRIC_STRONG or Authenticators.DEVICE_CREDENTIAL
 
-    override fun canAuthenticate(): Boolean {
+    override fun canAuthenticate(biometricOnly: Boolean): Boolean {
         val manager = BiometricManager.from(context)
-        return when (manager.canAuthenticate(authenticators)) {
+        if (biometricOnly) {
+            return manager.canAuthenticate(Authenticators.BIOMETRIC_STRONG) == BiometricManager.BIOMETRIC_SUCCESS ||
+                manager.canAuthenticate(Authenticators.BIOMETRIC_WEAK) == BiometricManager.BIOMETRIC_SUCCESS
+        }
+        return when (manager.canAuthenticate(strongOrCredential)) {
             BiometricManager.BIOMETRIC_SUCCESS -> true
-            // Some devices only report weak biometric + device credential.
             else -> manager.canAuthenticate(
                 Authenticators.BIOMETRIC_WEAK or Authenticators.DEVICE_CREDENTIAL,
             ) == BiometricManager.BIOMETRIC_SUCCESS
@@ -31,14 +34,16 @@ class BiometricAppLockAuthenticator(
         activity: FragmentActivity,
         title: String,
         subtitle: String,
+        biometricOnly: Boolean,
+        negativeButtonText: String?,
         onResult: (AppLockAuthResult) -> Unit,
     ) {
-        if (!canAuthenticate()) {
+        if (!canAuthenticate(biometricOnly)) {
             onResult(AppLockAuthResult.Unavailable)
             return
         }
 
-        val allowed = resolveAuthenticators()
+        val allowed = resolveAuthenticators(biometricOnly)
         val executor = ContextCompat.getMainExecutor(activity)
         val prompt = BiometricPrompt(
             activity,
@@ -76,17 +81,32 @@ class BiometricAppLockAuthenticator(
             .setTitle(title)
             .setSubtitle(subtitle)
             .setAllowedAuthenticators(allowed)
+            .apply {
+                if (biometricOnly && !negativeButtonText.isNullOrBlank()) {
+                    setNegativeButtonText(negativeButtonText)
+                }
+            }
             .build()
 
         prompt.authenticate(promptInfo)
     }
 
-    private fun resolveAuthenticators(): Int {
+    private fun resolveAuthenticators(biometricOnly: Boolean): Int {
         val manager = BiometricManager.from(context)
+        if (biometricOnly) {
+            return if (
+                manager.canAuthenticate(Authenticators.BIOMETRIC_STRONG) ==
+                BiometricManager.BIOMETRIC_SUCCESS
+            ) {
+                Authenticators.BIOMETRIC_STRONG
+            } else {
+                Authenticators.BIOMETRIC_WEAK
+            }
+        }
         return if (
-            manager.canAuthenticate(authenticators) == BiometricManager.BIOMETRIC_SUCCESS
+            manager.canAuthenticate(strongOrCredential) == BiometricManager.BIOMETRIC_SUCCESS
         ) {
-            authenticators
+            strongOrCredential
         } else {
             Authenticators.BIOMETRIC_WEAK or Authenticators.DEVICE_CREDENTIAL
         }

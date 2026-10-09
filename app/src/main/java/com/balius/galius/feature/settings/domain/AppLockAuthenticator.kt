@@ -10,12 +10,14 @@ sealed interface AppLockAuthResult {
 }
 
 interface AppLockAuthenticator {
-    fun canAuthenticate(): Boolean
+    fun canAuthenticate(biometricOnly: Boolean = false): Boolean
 
     fun authenticate(
         activity: FragmentActivity,
         title: String,
         subtitle: String,
+        biometricOnly: Boolean = false,
+        negativeButtonText: String? = null,
         onResult: (AppLockAuthResult) -> Unit,
     )
 }

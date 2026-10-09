@@ -35,6 +35,8 @@ import com.balius.galius.feature.settings.domain.AppLockAuthResult
 import com.balius.galius.feature.settings.domain.AppLockAuthenticator
 import com.balius.galius.feature.settings.domain.model.SettingsPreferences
 import com.balius.galius.feature.settings.domain.usecase.ObserveSettingsPreferencesUseCase
+import com.balius.galius.feature.settings.domain.usecase.VerifyAppPinUseCase
+import com.balius.galius.feature.settings.domain.AppPinRules
 import com.balius.galius.feature.settings.presentation.AppLockScreen
 import com.balius.galius.ui.theme.CanvasBase
 import com.balius.galius.ui.theme.GaliusTheme
@@ -45,6 +47,7 @@ import org.koin.android.ext.android.inject
 class MainActivity : FragmentActivity() {
     private val observeSettingsPreferences: ObserveSettingsPreferencesUseCase by inject()
     private val appLockAuthenticator: AppLockAuthenticator by inject()
+    private val verifyAppPin: VerifyAppPinUseCase by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,6 +56,7 @@ class MainActivity : FragmentActivity() {
             GaliusAppRoot(
                 observeSettingsPreferences = observeSettingsPreferences,
                 appLockAuthenticator = appLockAuthenticator,
+                verifyAppPin = verifyAppPin,
             )
         }
     }
@@ -62,6 +66,7 @@ class MainActivity : FragmentActivity() {
 fun GaliusAppRoot(
     observeSettingsPreferences: ObserveSettingsPreferencesUseCase,
     appLockAuthenticator: AppLockAuthenticator,
+    verifyAppPin: VerifyAppPinUseCase,
     modifier: Modifier = Modifier,
 ) {
     var preferences by remember { mutableStateOf<SettingsPreferences?>(null) }
@@ -96,7 +101,9 @@ fun GaliusAppRoot(
         SyncSystemBarAppearance(darkTheme = darkTheme)
         AppLockGate(
             appLockEnabled = prefs.appLockEnabled,
+            biometricUnlockEnabled = prefs.biometricUnlockEnabled,
             authenticator = appLockAuthenticator,
+            verifyAppPin = verifyAppPin,
             modifier = modifier,
         )
     }
@@ -105,7 +112,9 @@ fun GaliusAppRoot(
 @Composable
 private fun AppLockGate(
     appLockEnabled: Boolean,
+    biometricUnlockEnabled: Boolean,
     authenticator: AppLockAuthenticator,
+    verifyAppPin: VerifyAppPinUseCase,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -117,9 +126,13 @@ private fun AppLockGate(
     // Never rememberSaveable — process death must require unlock again.
     var unlocked by remember { mutableStateOf(!appLockEnabled) }
     var authenticating by remember { mutableStateOf(false) }
+    var pin by remember { mutableStateOf("") }
+    var wrongPin by remember { mutableStateOf(false) }
 
     val lockTitle = stringResource(R.string.app_lock_title)
     val lockSubtitle = stringResource(R.string.app_lock_subtitle)
+    val usePin = stringResource(R.string.app_lock_use_pin)
+    val biometricReady = biometricUnlockEnabled && authenticator.canAuthenticate(biometricOnly = true)
 
     fun showMessage(messageRes: Int) {
         scope.launch {
@@ -128,17 +141,19 @@ private fun AppLockGate(
         }
     }
 
-    fun requestUnlock() {
+    fun requestBiometric() {
         val host = activity ?: run {
             showMessage(R.string.app_lock_error)
             return
         }
-        if (authenticating || unlocked || !appLockEnabled) return
+        if (authenticating || unlocked || !appLockEnabled || !biometricReady) return
         authenticating = true
         authenticator.authenticate(
             activity = host,
             title = lockTitle,
             subtitle = lockSubtitle,
+            biometricOnly = true,
+            negativeButtonText = usePin,
         ) { result ->
             authenticating = false
             when (result) {
@@ -150,8 +165,26 @@ private fun AppLockGate(
         }
     }
 
-    val latestRequestUnlock by rememberUpdatedState(newValue = ::requestUnlock)
+    fun submitPin() {
+        if (!AppPinRules.isValid(pin)) {
+            wrongPin = true
+            pin = ""
+            return
+        }
+        scope.launch {
+            if (verifyAppPin(pin)) {
+                unlocked = true
+                wrongPin = false
+            } else {
+                pin = ""
+                wrongPin = true
+            }
+        }
+    }
+
+    val latestRequestBiometric by rememberUpdatedState(newValue = ::requestBiometric)
     val latestAppLockEnabled by rememberUpdatedState(appLockEnabled)
+    val latestBiometricReady by rememberUpdatedState(biometricReady)
     val latestUnlocked by rememberUpdatedState(unlocked)
     val latestAuthenticating by rememberUpdatedState(authenticating)
 
@@ -159,14 +192,22 @@ private fun AppLockGate(
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
                 Lifecycle.Event.ON_STOP -> {
-                    // Re-lock when leaving app (not during biometric prompt).
-                    if (latestAppLockEnabled && !latestAuthenticating) {
+                    // Re-lock when leaving the app. A turn is a config change, not a leave.
+                    val changingConfig = activity?.isChangingConfigurations == true
+                    if (latestAppLockEnabled && !latestAuthenticating && !changingConfig) {
                         unlocked = false
+                        pin = ""
+                        wrongPin = false
                     }
                 }
                 Lifecycle.Event.ON_RESUME -> {
-                    if (latestAppLockEnabled && !latestUnlocked && !latestAuthenticating) {
-                        latestRequestUnlock()
+                    if (
+                        latestAppLockEnabled &&
+                        latestBiometricReady &&
+                        !latestUnlocked &&
+                        !latestAuthenticating
+                    ) {
+                        latestRequestBiometric()
                     }
                 }
                 else -> Unit
@@ -179,10 +220,11 @@ private fun AppLockGate(
     LaunchedEffect(appLockEnabled) {
         if (!appLockEnabled) {
             unlocked = true
+            pin = ""
+            wrongPin = false
         } else {
-            // Force lock whenever preference is on (cold start + toggle on).
             unlocked = false
-            requestUnlock()
+            if (biometricReady) requestBiometric()
         }
     }
 
@@ -190,7 +232,23 @@ private fun AppLockGate(
         if (!appLockEnabled || unlocked) {
             GaliusNavHost(modifier = Modifier.fillMaxSize())
         } else {
-            AppLockScreen(onUnlockClick = { requestUnlock() })
+            AppLockScreen(
+                pinLength = pin.length,
+                wrongPin = wrongPin,
+                biometricAvailable = biometricReady,
+                onDigit = { digit ->
+                    if (pin.length < AppPinRules.MAX_LENGTH) {
+                        pin += digit.toString()
+                        wrongPin = false
+                    }
+                },
+                onDelete = {
+                    pin = pin.dropLast(1)
+                    wrongPin = false
+                },
+                onSubmit = ::submitPin,
+                onBiometricClick = ::requestBiometric,
+            )
         }
         SnackbarHost(
             hostState = snackbarHostState,

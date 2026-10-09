@@ -7,4 +7,5 @@ data class SettingsPreferences(
     val themeMode: ThemeMode = ThemeMode.Dark,
     val accent: AccentOption = AccentOption.ElectricIndigo,
     val appLockEnabled: Boolean = false,
+    val biometricUnlockEnabled: Boolean = false,
 )

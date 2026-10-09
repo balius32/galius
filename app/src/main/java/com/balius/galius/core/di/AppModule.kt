@@ -32,11 +32,15 @@ import com.balius.galius.feature.settings.data.SettingsRepositoryImpl
 import com.balius.galius.feature.settings.domain.AppLockAuthenticator
 import com.balius.galius.feature.settings.domain.repository.DatabaseSizeProvider
 import com.balius.galius.feature.settings.domain.repository.SettingsRepository
+import com.balius.galius.feature.settings.domain.usecase.ClearAppLockUseCase
 import com.balius.galius.feature.settings.domain.usecase.ObserveLibraryStorageUseCase
 import com.balius.galius.feature.settings.domain.usecase.ObserveSettingsPreferencesUseCase
 import com.balius.galius.feature.settings.domain.usecase.SetAccentUseCase
 import com.balius.galius.feature.settings.domain.usecase.SetAppLockEnabledUseCase
+import com.balius.galius.feature.settings.domain.usecase.SetAppPinUseCase
+import com.balius.galius.feature.settings.domain.usecase.SetBiometricUnlockUseCase
 import com.balius.galius.feature.settings.domain.usecase.SetThemeModeUseCase
+import com.balius.galius.feature.settings.domain.usecase.VerifyAppPinUseCase
 import com.balius.galius.feature.settings.presentation.SettingsReducer
 import com.balius.galius.feature.settings.presentation.SettingsViewModel
 import com.balius.galius.feature.tags.data.repository.TaxonomyRepositoryImpl
@@ -105,6 +109,10 @@ val appModule = module {
     factoryOf(::SetThemeModeUseCase)
     factoryOf(::SetAccentUseCase)
     factoryOf(::SetAppLockEnabledUseCase)
+    factoryOf(::SetAppPinUseCase)
+    factoryOf(::VerifyAppPinUseCase)
+    factoryOf(::ClearAppLockUseCase)
+    factoryOf(::SetBiometricUnlockUseCase)
     factoryOf(::ObserveLibraryStorageUseCase)
 
     factoryOf(::HomeReducer)

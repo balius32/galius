@@ -96,10 +96,28 @@
     <string name="settings_accent_jade">Deep Jade</string>
     <string name="settings_security">Security &amp; Encryption</string>
     <string name="settings_zero_cloud">Zero Cloud</string>
-    <string name="settings_app_lock">App Biometric Lock</string>
-    <string name="settings_app_lock_subtitle">Require biometrics or device PIN to open</string>
+    <string name="settings_app_lock">App lock</string>
+    <string name="settings_app_lock_subtitle">Open Gallius with your PIN</string>
+    <string name="settings_biometric_unlock">Biometric unlock</string>
+    <string name="settings_biometric_unlock_subtitle">Use fingerprint or face. The PIN still works.</string>
+    <string name="settings_change_pin">Change PIN</string>
     <string name="app_lock_title">Unlock Gallius</string>
-    <string name="app_lock_subtitle">Confirm with fingerprint, face, or device PIN</string>
+    <string name="app_lock_subtitle">Enter your PIN</string>
+    <string name="app_lock_set_pin_title">Set a PIN</string>
+    <string name="app_lock_set_pin_subtitle">Use 4 to 8 digits</string>
+    <string name="app_lock_confirm_pin_title">Confirm PIN</string>
+    <string name="app_lock_confirm_pin_subtitle">Enter the same PIN again</string>
+    <string name="app_lock_current_pin_title">Enter current PIN</string>
+    <string name="app_lock_current_pin_subtitle">Confirm it is you</string>
+    <string name="app_lock_pin_too_short">Use at least 4 digits</string>
+    <string name="app_lock_pin_mismatch">PINs do not match. Try again.</string>
+    <string name="app_lock_wrong_pin">Wrong PIN</string>
+    <string name="app_lock_digit_cd">%1$d</string>
+    <string name="app_lock_delete_cd">Delete digit</string>
+    <string name="app_lock_submit_cd">Submit PIN</string>
+    <string name="app_lock_biometric_cd">Unlock with biometrics</string>
+    <string name="app_lock_not_now">Not now</string>
+    <string name="app_lock_use_pin">Use PIN</string>
     <string name="app_lock_unlock">Unlock</string>
     <string name="app_lock_unavailable">Set a screen lock (PIN, pattern, or password) in system settings first</string>
     <string name="app_lock_error">Could not verify identity. Try again.</string>
@@ -192,6 +210,12 @@
     <string name="player_seek_forward_hint">+%1$d s</string>
     <string name="player_seek_back_2_cd">Seek back 2 seconds</string>
     <string name="player_seek_forward_2_cd">Seek forward 2 seconds</string>
+    <string name="player_seek_back_seconds_cd">Seek back %1$d seconds</string>
+    <string name="player_seek_forward_seconds_cd">Seek forward %1$d seconds</string>
+    <string name="player_fill_screen_cd">Fill screen</string>
+    <string name="player_fit_screen_cd">Fit video</string>
+    <string name="player_buffering_cd">Buffering</string>
+    <string name="player_duration_unknown">--:--</string>
 
     <!-- Errors / states -->
     <string name="error_generic">Something went wrong</string>

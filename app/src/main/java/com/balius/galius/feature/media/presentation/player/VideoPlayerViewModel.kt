@@ -22,6 +22,7 @@ data class VideoPlayerState(
     val seekOverlaySeconds: Int? = null,
     val seekOverlayForward: Boolean = true,
     val holdSeekActive: Boolean = false,
+    val resizeToFill: Boolean = false,
 ) {
     val currentItem: MediaItem?
         get() = items.getOrNull(currentIndex)
@@ -35,6 +36,7 @@ sealed interface VideoPlayerIntent {
     data object ClearDoubleTapSeek : VideoPlayerIntent
     data class HoldSeekChanged(val active: Boolean, val forward: Boolean, val seconds: Int) :
         VideoPlayerIntent
+    data object ToggleResize : VideoPlayerIntent
 }
 
 class VideoPlayerReducer : Reducer<VideoPlayerState, VideoPlayerIntent> {
@@ -79,6 +81,7 @@ class VideoPlayerReducer : Reducer<VideoPlayerState, VideoPlayerIntent> {
                     )
                 }
             }
+            VideoPlayerIntent.ToggleResize -> state.copy(resizeToFill = !state.resizeToFill)
         }
 }
 
@@ -90,6 +93,23 @@ class VideoPlayerViewModel(
 ) : ViewModel() {
     private val _state = MutableStateFlow(VideoPlayerState(startMediaId = startMediaId))
     val state: StateFlow<VideoPlayerState> = _state.asStateFlow()
+
+    private var resumeMediaId: String? = null
+    private var resumePositionMs: Long = 0L
+    private var resumePlayWhenReady: Boolean = true
+
+    fun resumePositionFor(mediaId: String): Long =
+        if (resumeMediaId == mediaId) resumePositionMs else 0L
+
+    fun resumePlayWhenReadyFor(mediaId: String): Boolean =
+        if (resumeMediaId == mediaId) resumePlayWhenReady else true
+
+    fun onPlaybackSample(mediaId: String, positionMs: Long, playWhenReady: Boolean, ready: Boolean) {
+        if (!ready) return
+        resumeMediaId = mediaId
+        resumePositionMs = positionMs
+        resumePlayWhenReady = playWhenReady
+    }
 
     init {
         viewModelScope.launch {
